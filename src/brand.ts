@@ -7,5 +7,5 @@ export const BRAND = {
   // Brand contact address, set when the domain exists (never a personal address).
   contact: "",
   // Public source repository for the GPL source offer, set at launch.
-  sourceUrl: "",
+  sourceUrl: "https://github.com/onchaindevelopment/arcadepad",
 };

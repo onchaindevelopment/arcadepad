@@ -22,7 +22,8 @@ Environment (`.env.local`, never committed):
 |---|---|---|
 | `SESSION_SECRET` | production | 32+ random chars; signs session cookies, sign-in nonces |
 | `NEXT_PUBLIC_SITE_URL` | production | absolute site URL for OG images |
-| `DATA_DIR` | optional | where the JSON store lives (default `./data`) |
+| `DATABASE_URL` | production | Postgres connection string (Neon); without it a local JSON file is used |
+| `DATA_DIR` | optional | where the local JSON store lives (default `./data`) |
 
 ## How it fits together
 
@@ -64,8 +65,8 @@ npm run skin:new -- --id otter --name "Moon Otter" --ticker OTTER --chain solana
 This copies a pack, rotates its colours and registers it. Then draw the mascot grids and run `npm run test:themes`.
 Only use a real coin's brand with the owner's written permission.
 
-### Production storage
-`src/lib/store.ts` keeps scores, runs, nonces and order requests in one JSON file. That works locally or on a single always-on server. A serverless deploy needs a database: re-implement the same async functions on Postgres (tables `runs`, `scores`, `orders`, `used_nonces`).
+### Storage
+`src/lib/store.ts` uses Postgres when `DATABASE_URL` is set (production: Neon via the Vercel Marketplace; tables are created on first use) and a JSON file in `./data` otherwise (local development).
 
 ## Licences
 

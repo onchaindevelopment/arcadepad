@@ -1,7 +1,7 @@
-// Storage. v1 keeps JSON files in ./data (local dev / a single server).
-// A serverless deploy needs a database; swap this module for a Postgres
-// implementation with the same async API (see README "Production storage").
+// Storage: Postgres (Neon) when DATABASE_URL is set, otherwise a JSON file in
+// ./data for local development. Both backends share one async API.
 import "server-only";
+import { pgStore } from "./store-pg";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
@@ -86,14 +86,14 @@ function prune(db: Db) {
   for (const [id, r] of Object.entries(db.runs)) if (!r.submittedAt && r.startedAt < now - 86_400_000) delete db.runs[id];
 }
 
-export const store = {
+const fileStore = {
   async createRun(r: RunRecord) {
     const db = await load();
     prune(db);
     db.runs[r.id] = r;
     await persist(db);
   },
-  async getRun(id: string) {
+  async getRun(id: string): Promise<RunRecord | undefined> {
     return (await load()).runs[id];
   },
   /** Marks the run submitted; returns false if it already was (single use). */
@@ -127,7 +127,7 @@ export const store = {
   },
   async rankOf(s: ScoreRecord): Promise<number | null> {
     if (!s.wallet) return null;
-    const board = await this.leaderboard(s.theme, 100000);
+    const board = await fileStore.leaderboard(s.theme, 100000);
     const i = board.findIndex((b) => b.wallet === s.wallet);
     if (i < 0) return null;
     // Rank of this score even if it isn't the wallet's best.
@@ -147,3 +147,6 @@ export const store = {
     await persist(db);
   },
 };
+
+export type Store = typeof fileStore;
+export const store: Store = process.env.DATABASE_URL ? pgStore(process.env.DATABASE_URL) : fileStore;
