@@ -19,7 +19,7 @@ function Cell({ id, theme, frames }: { id: string; theme: ThemePack; frames: num
         if (i > frames - 30) r.onEvents(g.events, g.view());
       }
       for (let k = 0; k < 3; k++) r.draw(g.view(), 16);
-    });
+    }).catch((e) => console.error(`QA ${id}:`, e));
     return () => {
       off = true;
     };

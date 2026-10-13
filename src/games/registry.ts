@@ -11,8 +11,17 @@ import { invaders } from "./invaders/index.ts";
 import { runner } from "./runner/index.ts";
 import { maze } from "./maze/index.ts";
 import { pinball } from "./pinball/index.ts";
+import { slice } from "./slice/index.ts";
+import { target } from "./target/index.ts";
+import { duel } from "./duel/index.ts";
+import { bubbles } from "./bubbles/index.ts";
+import { jumper } from "./jumper/index.ts";
+import { cave } from "./cave/index.ts";
+import { lanes } from "./lanes/index.ts";
+import { hopper } from "./hopper/index.ts";
+import { sling } from "./sling/index.ts";
 
-export const GAMES: GameDef<never>[] = [breakout, pinball, runner, blocks, maze, invaders, snake, rocks, flap, stack, merge] as unknown as GameDef<never>[];
+export const GAMES: GameDef<never>[] = [breakout, pinball, sling, lanes, runner, blocks, maze, invaders, flap, jumper, hopper, slice, snake, rocks, bubbles, cave, target, duel, stack, merge] as unknown as GameDef<never>[];
 
 export function getGame(id: string): GameDef<unknown> | undefined {
   return GAMES.find((g) => g.id === id) as GameDef<unknown> | undefined;

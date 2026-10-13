@@ -18,6 +18,15 @@ const LOADERS: Record<string, () => Promise<{ default: RendererFactory }>> = {
   runner: () => import("./runner/render.ts") as Promise<{ default: RendererFactory }>,
   maze: () => import("./maze/render.ts") as Promise<{ default: RendererFactory }>,
   pinball: () => import("./pinball/render.ts") as Promise<{ default: RendererFactory }>,
+  slice: () => import("./slice/render.ts") as Promise<{ default: RendererFactory }>,
+  target: () => import("./target/render.ts") as Promise<{ default: RendererFactory }>,
+  duel: () => import("./duel/render.ts") as Promise<{ default: RendererFactory }>,
+  bubbles: () => import("./bubbles/render.ts") as Promise<{ default: RendererFactory }>,
+  jumper: () => import("./jumper/render.ts") as Promise<{ default: RendererFactory }>,
+  cave: () => import("./cave/render.ts") as Promise<{ default: RendererFactory }>,
+  lanes: () => import("./lanes/render.ts") as Promise<{ default: RendererFactory }>,
+  hopper: () => import("./hopper/render.ts") as Promise<{ default: RendererFactory }>,
+  sling: () => import("./sling/render.ts") as Promise<{ default: RendererFactory }>,
 };
 
 export async function loadGame(id: string) {
