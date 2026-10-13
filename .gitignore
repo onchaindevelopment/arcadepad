@@ -46,3 +46,6 @@ next-env.d.ts
 # internal notes (never public)
 CLAUDE.md
 BUILD-REPORT.md
+
+.vercel
+.env*
