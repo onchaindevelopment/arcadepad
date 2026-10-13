@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BRAND } from "@/brand";
+import { GAMES } from "@/games/registry";
 
 export const metadata: Metadata = {
   title: "Licences & source code",
@@ -7,19 +8,19 @@ export const metadata: Metadata = {
 };
 
 const ROWS = [
+  ...GAMES.map((g) =>
+    g.credits.basedOn === "Original"
+      ? { what: `${g.name} (game)`, from: `Original design and code by ${BRAND.name}`, licence: "GPL-3.0-or-later" }
+      : { what: `${g.name} (game logic)`, from: `Ported from ${g.credits.basedOn}, ${g.credits.authors}. ${g.credits.notes}`, licence: `${g.credits.licence} → our port: GPL-3.0-or-later` },
+  ),
   {
-    what: "Breakout engine (ball, bricks, paddle, extras, shots, level format)",
-    from: "LBreakout2 2.6.5 by Michael Speck, with patches by Zooko, Mark Tomich, Michal Cihar, Sammy Mannaert, Jochen Striepe, Lee Read, Claudio Chimera, Trevor Spiteri, Dante and Patrick Hohmeyer",
-    licence: "GPL-2.0-or-later → our TypeScript port: GPL-3.0-or-later",
-  },
-  {
-    what: "Levels, mascots, pixel art, sound recipes, music patterns, renderer, site",
+    what: "Levels, mascots, pixel art, sound recipes, music patterns, renderers, site",
     from: `Original work by ${BRAND.name}`,
     licence: "GPL-3.0-or-later",
   },
   { what: "Bricolage Grotesque, Silkscreen (fonts)", from: "The Bricolage Grotesque Project Authors; The Silkscreen Project Authors", licence: "SIL Open Font License 1.1" },
   { what: "Next.js, React, Tailwind CSS", from: "Vercel; Meta; Tailwind Labs", licence: "MIT" },
-  { what: "@noble/curves, @noble/hashes, @scure/base, viem", from: "Paul Miller; wevm", licence: "MIT" },
+  { what: "@noble/curves, @noble/hashes, @scure/base, viem, @neondatabase/serverless", from: "Paul Miller; wevm; Neon", licence: "MIT" },
 ];
 
 export default function LicensesPage() {
@@ -61,8 +62,7 @@ export default function LicensesPage() {
         <div className="slab p-5">
           <h2 className="text-xl font-bold">What we did not take</h2>
           <p className="mt-2 text-soft">
-            From LBreakout2 we ported the game logic only. Its graphics, sounds and bundled level sets are not used: the sounds come from a third-party pack, and the community
-            level sets have many authors. Every level, sprite and sound here is new.
+            From every ported game we take the game logic only. Their graphics, sounds, level sets and maps are never used, and some (like LBreakout2&apos;s sounds) come from third-party packs anyway. Every level, sprite and sound here is new. Full notices for the ported code are in THIRD_PARTY_NOTICES.md in the source repository.
           </p>
         </div>
         <div className="slab p-5">

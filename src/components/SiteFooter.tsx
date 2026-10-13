@@ -17,7 +17,8 @@ export function SiteFooter() {
           <span className="pixel text-xs uppercase text-soft">Play</span>
           <Link href="/#games" className="hover:underline">Games</Link>
           <Link href="/leaderboard" className="hover:underline">Leaderboard</Link>
-          <Link href="/order" className="hover:underline">Order a game for your coin</Link>
+          <Link href="/create" className="hover:underline">Make your coin&apos;s skin</Link>
+          <Link href="/order" className="hover:underline">Order a custom game</Link>
         </nav>
         <nav aria-label="Legal" className="grid content-start gap-2">
           <span className="pixel text-xs uppercase text-soft">Open source</span>

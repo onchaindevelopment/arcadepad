@@ -22,7 +22,19 @@ export async function POST(req: Request) {
   if (!o.coinName || !o.ticker || !o.contact) return NextResponse.json({ error: "Coin name, ticker and a contact are required." }, { status: 400 });
   if (body.rightsConfirmed !== true) return NextResponse.json({ error: "Please confirm you have the rights to the mascot and branding." }, { status: 400 });
 
-  const order = { id: randomId(6), createdAt: Date.now(), ...o, rightsConfirmed: true } as OrderRecord;
+  let skin: string | undefined;
+  if (body.skin !== undefined) {
+    if (typeof body.skin !== "string" || body.skin.length > 40_000) return NextResponse.json({ error: "Skin data is too large." }, { status: 400 });
+    try {
+      const parsed = JSON.parse(body.skin) as { coin?: unknown; mascot?: unknown; palette?: unknown };
+      if (!parsed.coin || !parsed.mascot || !parsed.palette) throw new Error("bad skin");
+    } catch {
+      return NextResponse.json({ error: "Skin data is invalid." }, { status: 400 });
+    }
+    skin = body.skin;
+  }
+
+  const order = { id: randomId(6), createdAt: Date.now(), ...o, rightsConfirmed: true, ...(skin ? { skin } : {}) } as OrderRecord;
   await store.addOrder(order);
   return NextResponse.json({ id: order.id });
 }

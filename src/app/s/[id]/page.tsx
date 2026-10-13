@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { getTheme } from "@/themes";
+import { getGame, gameTitle } from "@/games/registry";
 import { store } from "@/lib/store";
 import { shortAddress } from "@/lib/session";
 
@@ -11,14 +12,15 @@ async function load(id: string) {
   await connection();
   const s = await store.getScore(id);
   const theme = s && getTheme(s.theme);
-  return s && theme ? { s, theme } : null;
+  const game = s && getGame(s.game ?? "breakout");
+  return s && theme && game ? { s, theme, game, title: gameTitle(game, theme) } : null;
 }
 
 export async function generateMetadata(props: PageProps<"/s/[id]">): Promise<Metadata> {
   const { id } = await props.params;
   const d = await load(id);
   if (!d) return { title: "Score not found" };
-  const title = `${d.s.score.toLocaleString("en-US")} in ${d.theme.game.title} ($${d.theme.coin.ticker})`;
+  const title = `${d.s.score.toLocaleString("en-US")} in ${d.title} ($${d.theme.coin.ticker})`;
   const image = { url: `/api/card/${id}`, width: 1200, height: 630, alt: title };
   return {
     title,
@@ -41,7 +43,7 @@ async function Share({ params }: { params: PageProps<"/s/[id]">["params"] }) {
   const { id } = await params;
   const d = await load(id);
   if (!d) notFound();
-  const { s, theme } = d;
+  const { s, theme, game, title } = d;
   return (
     <div className="mx-auto max-w-4xl px-4 pt-12 sm:px-6">
       <span className="chip">Replay-verified score</span>
@@ -49,18 +51,18 @@ async function Share({ params }: { params: PageProps<"/s/[id]">["params"] }) {
         {shortAddress(s.wallet)} scored {s.score.toLocaleString("en-US")}
       </h1>
       <p className="mt-3 text-lg text-soft">
-        {theme.game.title} · ${theme.coin.ticker} · level {s.level + 1}
+        {title} · ${theme.coin.ticker}{s.level > 0 ? ` · level ${s.level + 1}` : ""}
       </p>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={`/api/card/${id}`} width={1200} height={630} alt={`Score card: ${s.score} points in ${theme.game.title}`} className="slab mt-8 h-auto w-full" />
+      <img src={`/api/card/${id}`} width={1200} height={630} alt={`Score card: ${s.score} points in ${title}`} className="slab mt-8 h-auto w-full" />
       <div className="mt-8 flex flex-wrap gap-3">
-        <Link href={`/play/${theme.id}`} className="btn btn-hot">
+        <Link href={`/play/${game.id}/${theme.id}`} className="btn btn-hot">
           Beat this score
         </Link>
         <a href={`/api/card/${id}?download=1`} className="btn btn-plain">
           Download card
         </a>
-        <Link href={`/leaderboard?coin=${theme.id}`} className="btn btn-plain">
+        <Link href={`/leaderboard?game=${game.id}&coin=${theme.id}`} className="btn btn-plain">
           Leaderboard
         </Link>
       </div>

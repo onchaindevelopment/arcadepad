@@ -3,7 +3,8 @@
 //   npm run dev   (port 4155)   then   npm run test:e2e
 import { ed25519 } from "@noble/curves/ed25519.js";
 import { base58 } from "@scure/base";
-import { Game, encodeInputs, runLevels } from "../src/engine/index.ts";
+import { encodeInputs } from "../src/games/core/replay.ts";
+import { getGame } from "../src/games/registry.ts";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:4155";
 let cookie = "";
@@ -25,16 +26,14 @@ function check(name, ok, extra = "") {
 }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-function bot(seed, frames, ticker) {
-  const g = new Game({ seed, levels: runLevels(ticker) });
+function bot(gameId, seed, frames, ticker) {
+  const def = getGame(gameId);
+  const g = def.create(seed, { ticker });
   const inputs = [];
-  let v = g.view();
   for (let i = 0; i < frames && !g.done; i++) {
-    let best = null;
-    for (const b of v.balls) if (!best || b.y > best.y) best = b;
-    const inp = { x: Math.round(Math.max(0, Math.min(640, best ? best.x + Math.sin(i / 40) * 12 : 320))), fire: true };
+    const inp = def.bot(g.view(), g.frame);
     inputs.push(inp);
-    v = g.step(inp);
+    g.step(inp);
   }
   return { inputs, result: g.result() };
 }
@@ -42,6 +41,7 @@ function bot(seed, frames, ticker) {
 // 1. Wallet sign-in (Solana-style ed25519 key)
 const sk = ed25519.utils.randomSecretKey();
 const address = base58.encode(ed25519.getPublicKey(sk));
+console.log(`test wallet: ${address}`);
 const n = await api("/api/auth/nonce", { chain: "solana", address });
 check("nonce issued", n.status === 200 && n.data.message.includes(address));
 const badSig = base58.encode(ed25519.sign(new TextEncoder().encode(n.data.message + "x"), sk));
@@ -53,10 +53,10 @@ check("nonce single-use", (await api("/api/auth/verify", { token: n.data.token, 
 check("session active", (await api("/api/auth/me")).data.address === address);
 
 // 2. Honest ranked run: 10 s of bot play, in real time
-const start = await api("/api/run/start", { theme: "glorp" });
+const start = await api("/api/run/start", { game: "breakout", theme: "glorp" });
 check("run started (ranked)", start.status === 200 && start.data.ranked === true);
 const FRAMES = 600;
-const { inputs, result } = bot(start.data.seed, FRAMES, "GLORP");
+const { inputs, result } = bot("breakout", start.data.seed, FRAMES, "GLORP");
 await sleep((FRAMES / 60) * 1000 + 300);
 const enc = encodeInputs(inputs);
 
@@ -68,15 +68,22 @@ check("honest run accepted", honest.status === 200 && honest.data.score === resu
 check("resubmit rejected", (await api("/api/run/submit", { runId: start.data.runId, inputs: enc, score: result.score, frames: result.frames })).status === 409);
 
 // 3. Too fast: a 2-minute run submitted right away
-const fast = await api("/api/run/start", { theme: "nubbin" });
-const long = bot(fast.data.seed, 7200, "NUBBIN");
+const fast = await api("/api/run/start", { game: "breakout", theme: "nubbin" });
+const long = bot("breakout", fast.data.seed, 7200, "NUBBIN");
 const fr = await api("/api/run/submit", { runId: fast.data.runId, inputs: encodeInputs(long.inputs), score: long.result.score, frames: long.result.frames });
 check("faster-than-real-time rejected", fr.status === 422, fr.data.error);
+
+// 3b. A second game through the same pipeline (Snake, 8 s)
+const sn = await api("/api/run/start", { game: "snake", theme: "wobbl" });
+const snRun = bot("snake", sn.data.seed, 480, "WOBBL");
+await sleep((snRun.result.frames / 60) * 1000 + 300);
+const snSub = await api("/api/run/submit", { runId: sn.data.runId, inputs: encodeInputs(snRun.inputs), score: snRun.result.score, frames: snRun.result.frames });
+check("second game (snake) verified", snSub.status === 200 && snSub.data.score === snRun.result.score, `score ${snRun.result.score}`);
 
 // 4. Card + leaderboard
 const card = await fetch(`${BASE}/api/card/${honest.data.scoreId}`);
 check("score card renders PNG", card.status === 200 && card.headers.get("content-type") === "image/png", `${(await card.arrayBuffer()).byteLength} bytes`);
-const lb = await api("/api/leaderboard?theme=glorp");
+const lb = await api("/api/leaderboard?game=breakout&theme=glorp");
 check("leaderboard lists the run", lb.data.rows.some((r) => r.id === honest.data.scoreId));
 
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll checks passed");

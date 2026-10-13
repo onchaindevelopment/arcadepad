@@ -2,7 +2,9 @@
 
 Classic open-source games, ported to the browser and re-skinned for memecoin communities: their mascot, colours, ticker and sounds, with wallet-signed high scores and shareable score cards.
 
-**v1 game:** Breakout, with its engine ported from **LBreakout2** to deterministic TypeScript. It ships with three demo skins for fictional coins: `$GLORP`, `$NUBBIN` and `$WOBBL`.
+**Games:** classic arcade games, each a deterministic TypeScript engine (so the server can replay every score) with a canvas renderer driven by the coin's theme pack. See `src/games/` and the authoring guide in `src/games/README.md`. Each game's origin and licence is listed under "Licences" below and on the site's /licenses page.
+
+**Self-serve:** `/create` lets a community upload mascot art (pixelated in the browser, never uploaded), pick colours and a sound style, play every game in that skin as a practice run, and send the finished theme pack with an order request.
 
 > High scores are for fun and bragging rights. No cash prizes, no wagering, no entry fees, no token rewards. Wallet sign-in signs a text message only, never a transaction.
 
@@ -11,7 +13,8 @@ Classic open-source games, ported to the browser and re-skinned for memecoin com
 ```bash
 npm install
 npm run dev            # http://localhost:4155
-npm run test:engine    # engine: determinism, replay, physics
+npm run test:engine    # Breakout engine: determinism, replay, physics
+npm run test:games     # every game: bot scores, replay == live run, rule tests
 npm run test:themes    # theme packs are complete and valid
 npm run build && npm start
 ```
@@ -28,14 +31,17 @@ Environment (`.env.local`, never committed):
 ## How it fits together
 
 ```
-src/engine/        Deterministic Breakout engine (port of LBreakout2) + replay encoder
-src/themes/        Theme packs (one JSON per coin), validator, pixel-sprite helpers
-src/game/          Canvas renderer + WebAudio synth (purely visual/audio)
-src/components/    Game client, attract-mode demo, wallet button, mascot
-src/app/           Pages: /, /play/[theme], /leaderboard, /order, /s/[id], /licenses, /fair-play
-src/app/api/       auth (nonce, verify, me, logout), run (start, submit), leaderboard, card/[id], orders
-src/lib/           store (JSON file), HMAC tokens, sessions, wallet signature checks
-scripts/new-skin.mjs  Scaffold a new coin skin
+src/games/core/       Game contract, generic input recording + replay, deterministic trig, render kit
+src/games/<id>/       One folder per game: engine + GameDef (index.ts), renderer (render.ts), tests
+src/games/registry.ts All games (server-safe); src/games/client.ts lazy-loads renderers
+src/engine/           Breakout engine (port of LBreakout2) used by src/games/breakout
+src/themes/           Theme packs (one JSON per coin), validator, pixel sprites, self-serve theme builder
+src/game/             Breakout renderer + WebAudio synth
+src/components/       GameHost (any game), attract demo, live thumbnails, wallet button, mascot
+src/app/              Pages: /, /play/[game]/[theme], /create, /leaderboard, /order, /s/[id], /licenses, /fair-play
+src/app/api/          auth (nonce, verify, me, logout), run (start, submit), leaderboard, card/[id], orders
+src/lib/              store (Postgres or JSON file), HMAC tokens, sessions, wallet signature checks
+scripts/              new-skin, register-game, e2e-api
 ```
 
 ### Deterministic engine and anti-cheat
@@ -70,17 +76,20 @@ Only use a real coin's brand with the owner's written permission.
 
 ## Licences
 
-| Component | Source | Licence |
+ArcadePad is GPL-3.0-or-later (`LICENSE`). Ported game logic keeps its original notices in `THIRD_PARTY_NOTICES.md`:
+
+| Game | Based on | Licence of the original |
 |---|---|---|
-| Breakout engine (`src/engine/game.ts`, `level.ts`, physics tables) | Port of LBreakout2 2.6.5, © 2001–2015 Michael Speck and contributors (Zooko, Mark Tomich, Michal Cihar, Sammy Mannaert, Jochen Striepe, Lee Read, Claudio Chimera, Trevor Spiteri, Dante, Patrick Hohmeyer) | GPL-2.0-or-later upstream; this port GPL-3.0-or-later |
-| Everything else in this repo: levels, mascots and pixel art, sound recipes, music, renderer, site | Original work | GPL-3.0-or-later |
-| Bricolage Grotesque, Silkscreen (`assets/fonts`, Google Fonts) | Their font projects | SIL OFL 1.1 (texts in `assets/fonts/`) |
-| Next.js, React, Tailwind, @noble/*, @scure/base, viem | npm | MIT |
+| Breakout | LBreakout2 2.6.5 (Michael Speck and contributors) | GPL-2.0-or-later |
+| Snake | worm, BSD games (The Regents of the University of California) | BSD-3-Clause |
+| Candle Run | Chromium network-error runner game (The Chromium Authors) | BSD-3-Clause |
+| Merge to Moon | 2048 (Gabriele Cirulli) | MIT |
+| Rock Blaster | HTML5 canvas rock shooter (Doug McInnes) | MIT |
+| Moon Flap | floppybird (nebez and contributors), constants only | Apache-2.0 |
+| Block Drop, Maze Dash, FUD Defense, Moon Stack, Moon Pinball | Original ArcadePad designs | GPL-3.0-or-later |
 
-**Not used from LBreakout2:** its graphics, its sounds (they come from a third-party commercial sound collection) and its bundled level sets (many contributors, unclear terms). Only the game logic was ported. Every level, sprite and sound here is new.
+Only game logic is ever ported. No artwork, sounds, levels, maps or fonts from those projects are used; all of that is original here. Trademarked game names, characters and recognisable trade dress are never used: genre mechanics are, their look is not.
 
-**GPL obligations:** the game runs in the player's browser, so anyone who plays receives the program. Each public deployment must offer the complete corresponding source (this repository) under GPL-3.0-or-later. Set `BRAND.sourceUrl` in `src/brand.ts` and it appears on `/licenses`.
+Fonts: Bricolage Grotesque and Silkscreen (SIL OFL 1.1, texts in `assets/fonts/`). npm libraries: MIT.
 
-Game selection rule for future ports: only games whose **code and assets** both have open licences that allow commercial use and modification (e.g. GPL/MIT/BSD/zlib code with CC0/CC-BY/GPL assets), or explicit written permission. Check every asset and record it in this table. Never use trademarked game names or characters.
-
-See `LICENSE` (GNU GPL v3).
+**GPL:** the games run in players' browsers, so every deployment offers its complete source: https://github.com/onchaindevelopment/arcadepad (linked on /licenses).

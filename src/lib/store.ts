@@ -7,6 +7,7 @@ import path from "node:path";
 
 export interface RunRecord {
   id: string;
+  game: string;
   theme: string;
   seed: number;
   wallet: string | null;
@@ -18,6 +19,7 @@ export interface RunRecord {
 export interface ScoreRecord {
   id: string;
   runId: string;
+  game: string;
   theme: string;
   wallet: string | null;
   chain: string | null;
@@ -44,6 +46,8 @@ export interface OrderRecord {
   timeline: string;
   notes: string;
   rightsConfirmed: boolean;
+  /** Theme pack JSON built in the self-serve skin builder (optional). */
+  skin?: string;
 }
 
 interface Db {
@@ -113,11 +117,12 @@ const fileStore = {
   async getScore(id: string) {
     return (await load()).scores.find((s) => s.id === id);
   },
-  /** Best score per wallet for a theme (or all themes), ranked. Guests are excluded. */
-  async leaderboard(theme: string | null, limit = 50): Promise<ScoreRecord[]> {
+  /** Best score per wallet for a game + theme, ranked. Guests are excluded. */
+  async leaderboard(game: string, theme: string | null, limit = 50): Promise<ScoreRecord[]> {
     const db = await load();
     const best = new Map<string, ScoreRecord>();
     for (const s of db.scores) {
+      if ((s.game ?? "breakout") !== game) continue;
       if (!s.wallet || (theme && s.theme !== theme)) continue;
       const key = theme ? s.wallet : `${s.wallet}:${s.theme}`;
       const cur = best.get(key);
@@ -127,7 +132,7 @@ const fileStore = {
   },
   async rankOf(s: ScoreRecord): Promise<number | null> {
     if (!s.wallet) return null;
-    const board = await fileStore.leaderboard(s.theme, 100000);
+    const board = await fileStore.leaderboard(s.game ?? "breakout", s.theme, 100000);
     const i = board.findIndex((b) => b.wallet === s.wallet);
     if (i < 0) return null;
     // Rank of this score even if it isn't the wallet's best.

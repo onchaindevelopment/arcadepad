@@ -10,7 +10,8 @@
     "test:themes": "node --test src/themes/*.test.ts",
     "skin:new": "node scripts/new-skin.mjs",
     "test:engine": "node --test \"src/engine/**/*.test.ts\"",
-    "test:e2e": "node scripts/e2e-api.mjs"
+    "test:e2e": "node scripts/e2e-api.mjs",
+    "test:games": "node --test \"src/games/**/*.test.ts\""
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",

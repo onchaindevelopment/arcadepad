@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { BRAND } from "@/brand";
 import { getTheme } from "@/themes";
+import { getGame, gameTitle } from "@/games/registry";
 import { store } from "@/lib/store";
 import { shortAddress } from "@/lib/session";
 import type { Grid } from "@/themes/pixel";
@@ -43,6 +44,8 @@ export async function GET(req: Request, ctx: RouteContext<"/api/card/[id]">) {
   const theme = s && getTheme(s.theme);
   if (!s || !theme) return new Response("Not found", { status: 404 });
 
+  const game = getGame(s.game ?? "breakout");
+  const title = game ? gameTitle(game, theme) : theme.game.title;
   const rank = await store.rankOf(s);
   const [bold, medium, pixel] = await fonts;
   const p = theme.palette;
@@ -62,7 +65,7 @@ export async function GET(req: Request, ctx: RouteContext<"/api/card/[id]">) {
           </div>
           <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
             <div style={{ display: "flex", fontFamily: "Silk", fontSize: 30, color: p.primary, letterSpacing: 2 }}>
-              ${theme.coin.ticker} · {theme.game.title.toUpperCase()}
+              ${theme.coin.ticker} · {title.toUpperCase()}
             </div>
             <div style={{ display: "flex", fontSize: 168, fontWeight: 800, lineHeight: 1, letterSpacing: -6, marginTop: 8 }}>{s.score.toLocaleString("en-US")}</div>
             <div style={{ display: "flex", gap: 16, marginTop: 22, fontSize: 30, fontWeight: 500 }}>

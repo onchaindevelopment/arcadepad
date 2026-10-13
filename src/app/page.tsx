@@ -2,6 +2,8 @@ import Link from "next/link";
 import { THEMES } from "@/themes";
 import { MascotStatic } from "@/components/Mascot";
 import { AttractScreen } from "@/components/AttractScreen";
+import { GameThumb } from "@/components/GameThumb";
+import { GAMES, gameTitle } from "@/games/registry";
 
 const MARQUEE = ["INSERT COIN", ...THEMES.map((t) => `$${t.coin.ticker}`), "HIGH SCORES", "WALLET-SIGNED", "NO WAGERING", "OPEN SOURCE", "SHARE CARDS"];
 
@@ -27,7 +29,7 @@ export default function Home() {
       <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 pt-10 sm:px-6 md:pt-16 lg:grid-cols-[1.05fr_1fr]">
         <div className="pop-in">
           <span className="chip">
-            <span className="h-2 w-2 rounded-full bg-hot" aria-hidden /> Now playing: Breakout, ported from LBreakout2
+            <span className="h-2 w-2 rounded-full bg-hot" aria-hidden /> Now playing: {GAMES.length} classic arcade games
           </span>
           <h1 className="mt-5 text-[clamp(2.6rem,5.6vw,4.7rem)] font-extrabold leading-[0.9] tracking-[-0.035em]">
             Classic games,
@@ -43,17 +45,17 @@ export default function Home() {
             cards, and something to do besides watch the chart.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href={`/play/${THEMES[0].id}`} className="btn btn-hot text-lg">
-              ▶ Play the demo
+            <Link href="#games" className="btn btn-hot text-lg">
+              ▶ Play the arcade
             </Link>
-            <Link href="/order" className="btn btn-plain text-lg">
-              Order a game for your coin
+            <Link href="/create" className="btn btn-plain text-lg">
+              Skin it for your coin
             </Link>
           </div>
           <dl className="mt-10 grid max-w-md grid-cols-3 gap-3">
             {[
               ["3", "demo coins"],
-              ["1", "ported classic"],
+              [String(GAMES.length), "classic games"],
               ["0", "token rewards (on purpose)"],
             ].map(([n, l]) => (
               <div key={l} className="slab !rounded-2xl !shadow-[3px_3px_0_var(--shadow)] px-3 py-2">
@@ -66,7 +68,7 @@ export default function Home() {
             ))}
           </dl>
         </div>
-        <AttractScreen />
+        <AttractScreen games={GAMES.map((g) => ({ id: g.id, name: g.name, field: g.field }))} />
       </section>
 
       {/* Marquee */}
@@ -90,41 +92,69 @@ export default function Home() {
       <section id="games" className="mx-auto max-w-6xl scroll-mt-28 px-4 pt-24 sm:px-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <span className="chip">Demo skins</span>
-            <h2 className="mt-3 text-[clamp(2rem,4.5vw,3.4rem)] font-extrabold leading-none tracking-tight">Same game. Three coins.</h2>
-            <p className="mt-3 max-w-xl text-soft">One engine, three theme packs. Each skin swaps the mascot, colours, sound effects, music and the ticker level. All three coins are made up.</p>
+            <span className="chip">The arcade</span>
+            <h2 className="mt-3 text-[clamp(2rem,4.5vw,3.4rem)] font-extrabold leading-none tracking-tight">{GAMES.length} classics. Any coin.</h2>
+            <p className="mt-3 max-w-xl text-soft">Every game runs in your browser, wears your coin&apos;s mascot, colours and sounds, and keeps a wallet-signed leaderboard. More are being ported.</p>
           </div>
         </div>
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {THEMES.map((t, i) => {
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {GAMES.map((g, i) => {
+            const t = THEMES[i % THEMES.length];
             const p = t.palette;
             return (
-              <article key={t.id} className="slab slab-lift group relative flex flex-col overflow-hidden" style={{ background: p.bg, color: p.text }}>
-                <div className="relative grid h-56 place-items-center overflow-hidden" style={{ background: `linear-gradient(160deg, ${p.bg2}, ${p.bg})` }}>
-                  <div className="absolute inset-x-4 top-4 grid grid-cols-6 gap-1.5" aria-hidden>
-                    {Array.from({ length: 12 }, (_, k) => (
-                      <span key={k} className="h-3.5 rounded-[4px] border-2" style={{ background: p.bricks[(k + i) % p.bricks.length], borderColor: p.ink }} />
-                    ))}
-                  </div>
-                  <MascotStatic theme={t} size={132} className="floaty mt-8 transition-transform duration-300 group-hover:scale-110" />
-                </div>
+              <article key={g.id} className="slab slab-lift group flex flex-col overflow-hidden" style={{ background: p.bg, color: p.text }}>
+                <Link href={`/play/${g.id}/${t.id}`} className="block aspect-[4/3] overflow-hidden" aria-label={`Play ${gameTitle(g, t)}`} tabIndex={-1}>
+                  <GameThumb gameId={g.id} theme={t} label={`${g.name} preview in the ${t.coin.ticker} skin`} />
+                </Link>
                 <div className="flex flex-1 flex-col p-5">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="pixel text-sm font-bold" style={{ color: p.primary }}>
-                      ${t.coin.ticker}
+                    <span className="pixel text-xs" style={{ color: p.primary }}>
+                      {g.genre.toUpperCase()}
                     </span>
-                    <span className="pixel rounded-full border-2 px-2 py-0.5 text-[0.65rem] uppercase" style={{ borderColor: `${p.text}55` }}>
-                      {t.coin.chain}
+                    <span className="pixel rounded-full border-2 px-2 py-0.5 text-[0.6rem] uppercase" style={{ borderColor: `${p.text}55` }}>
+                      {g.session}
                     </span>
                   </div>
-                  <h3 className="mt-2 text-2xl font-extrabold">{t.game.title}</h3>
-                  <p className="mt-1 flex-1 opacity-80">{t.game.tagline}</p>
-                  <div className="mt-5 flex items-center justify-between gap-3">
-                    <Link href={`/play/${t.id}`} className="btn" style={{ background: p.primary }}>
+                  <h3 className="mt-2 text-2xl font-extrabold">{g.name}</h3>
+                  <p className="mt-1 flex-1 text-sm opacity-80">{g.tagline}</p>
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <Link href={`/play/${g.id}/${t.id}`} className="btn btn-sm" style={{ background: p.primary }}>
                       ▶ Play
                     </Link>
-                    <span className="text-xs opacity-60">Fictional demo coin</span>
+                    <div className="flex gap-1.5" aria-label="Other skins">
+                      {THEMES.map((o) => (
+                        <Link key={o.id} href={`/play/${g.id}/${o.id}`} title={`${g.name} as ${o.coin.ticker}`} className="grid h-8 w-8 place-items-center rounded-full border-2" style={{ background: o.palette.bg2, borderColor: o.palette.primary }}>
+                          <MascotStatic theme={o} size={22} />
+                          <span className="sr-only">{`Play ${g.name} as $${o.coin.ticker}`}</span>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+
+        <div className="mt-16 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <span className="chip">Demo skins</span>
+            <h2 className="mt-3 text-[clamp(1.8rem,4vw,2.8rem)] font-extrabold leading-none tracking-tight">Same games. Your coin.</h2>
+            <p className="mt-3 max-w-xl text-soft">One theme pack re-skins every game: mascot, palette, sounds, music and the ticker level. These three coins are made up.</p>
+          </div>
+        </div>
+        <div className="mt-8 grid gap-6 md:grid-cols-3">
+          {THEMES.map((t) => {
+            const p = t.palette;
+            return (
+              <article key={t.id} className="slab flex items-center gap-4 p-5" style={{ background: p.bg, color: p.text }}>
+                <MascotStatic theme={t} size={84} className="floaty shrink-0" />
+                <div className="min-w-0">
+                  <p className="pixel text-sm" style={{ color: p.primary }}>
+                    ${t.coin.ticker} · {t.coin.chain.toUpperCase()}
+                  </p>
+                  <p className="text-xl font-extrabold">{t.coin.name}</p>
+                  <p className="mt-1 text-sm opacity-75">Fictional demo coin</p>
                 </div>
               </article>
             );
@@ -162,14 +192,15 @@ export default function Home() {
               have written permission for. No famous trademarked names or characters. Ported code stays GPL, and its source is published.
             </p>
             <ul className="mt-5 grid gap-2">
-              <li className="rounded-2xl border-2 border-line bg-white/10 p-3">
-                <span className="pixel text-xs text-sun">NOW PLAYING</span>
-                <p className="font-bold">Breakout · engine from LBreakout2 (GPL-2.0-or-later)</p>
-                <p className="text-sm opacity-80">All art, levels and sounds are new.</p>
-              </li>
-              <li className="rounded-2xl border-2 border-dashed border-white/50 p-3">
+              {GAMES.map((g) => (
+                <li key={g.id} className="flex flex-wrap items-baseline justify-between gap-x-3 rounded-2xl border-2 border-line bg-white/10 px-3 py-2">
+                  <span className="font-bold">{g.name}</span>
+                  <span className="text-sm opacity-85">{g.credits.basedOn === "Original" ? "ArcadePad original" : `${g.credits.basedOn} · ${g.credits.licence}`}</span>
+                </li>
+              ))}
+              <li className="rounded-2xl border-2 border-dashed border-white/50 px-3 py-2">
                 <span className="pixel text-xs text-sun">NEXT</span>
-                <p className="font-bold">More open-source classics, each licence-checked file by file</p>
+                <p className="font-bold">More classics and bigger games, each licence-checked file by file</p>
               </li>
             </ul>
             <Link href="/licenses" className="btn btn-sun btn-sm mt-5">
@@ -188,8 +219,11 @@ export default function Home() {
               Bragging rights, not prizes: no wagering, no entry fees, no token rewards. Just your mascot, your colours and a leaderboard your community will fight over.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Link href="/order" className="btn btn-hot text-lg">
-                Order a game
+              <Link href="/create" className="btn btn-hot text-lg">
+                Make your coin&apos;s skin
+              </Link>
+              <Link href="/order" className="btn btn-plain text-lg !text-[#1a1033] !bg-white">
+                Order a custom game
               </Link>
               <Link href="/fair-play" className="btn btn-plain text-lg !text-[#1a1033] !bg-white">
                 Fair play rules

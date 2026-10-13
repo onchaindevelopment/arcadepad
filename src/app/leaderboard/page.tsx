@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { THEMES, getTheme } from "@/themes";
+import { GAMES, gameTitle, getGame } from "@/games/registry";
 import { store } from "@/lib/store";
 import { shortAddress } from "@/lib/session";
 import { MascotStatic } from "@/components/Mascot";
@@ -25,7 +26,8 @@ async function Board({ searchParams }: { searchParams: PageProps<"/leaderboard">
   const sp = await searchParams;
   const active = typeof sp.coin === "string" && getTheme(sp.coin) ? sp.coin : THEMES[0].id;
   const theme = getTheme(active)!;
-  const rows = await store.leaderboard(active, 50);
+  const game = (typeof sp.game === "string" && getGame(sp.game)) || GAMES[0];
+  const rows = await store.leaderboard(game.id, active, 50);
   const p = theme.palette;
 
   return (
@@ -34,11 +36,19 @@ async function Board({ searchParams }: { searchParams: PageProps<"/leaderboard">
       <h1 className="mt-4 text-[clamp(2.2rem,5vw,3.8rem)] font-extrabold leading-none tracking-tight">Top runs</h1>
       <p className="mt-4 max-w-2xl text-lg text-soft">Best score per wallet. Every score here was re-played by the server from the run&apos;s inputs. Bragging rights only.</p>
 
-      <nav aria-label="Choose a coin" className="mt-8 flex flex-wrap gap-3">
+      <nav aria-label="Choose a game" className="mt-8 flex flex-wrap gap-2">
+        {GAMES.map((g) => (
+          <Link key={g.id} href={`/leaderboard?game=${g.id}&coin=${active}`} aria-current={g.id === game.id ? "page" : undefined} className={`chip !text-[0.7rem] ${g.id === game.id ? "!bg-sun !text-[#1a1033]" : ""}`}>
+            {g.name}
+          </Link>
+        ))}
+      </nav>
+
+      <nav aria-label="Choose a coin" className="mt-4 flex flex-wrap gap-3">
         {THEMES.map((t) => (
           <Link
             key={t.id}
-            href={`/leaderboard?coin=${t.id}`}
+            href={`/leaderboard?game=${game.id}&coin=${t.id}`}
             aria-current={t.id === active ? "page" : undefined}
             className={`btn btn-sm ${t.id === active ? "" : "btn-plain"}`}
             style={t.id === active ? { background: t.palette.primary } : undefined}
@@ -56,10 +66,10 @@ async function Board({ searchParams }: { searchParams: PageProps<"/leaderboard">
               <p className="pixel text-xs" style={{ color: p.primary }}>
                 ${theme.coin.ticker}
               </p>
-              <p className="text-xl font-bold">{theme.game.title}</p>
+              <p className="text-xl font-bold">{gameTitle(game, theme)}</p>
             </div>
           </div>
-          <Link href={`/play/${theme.id}`} className="btn btn-sm" style={{ background: p.primary }}>
+          <Link href={`/play/${game.id}/${theme.id}`} className="btn btn-sm" style={{ background: p.primary }}>
             Play
           </Link>
         </div>
@@ -87,7 +97,7 @@ async function Board({ searchParams }: { searchParams: PageProps<"/leaderboard">
                       {shortAddress(r.wallet)}
                     </Link>
                   </td>
-                  <td className="hidden px-5 py-3 sm:table-cell">{r.level + 1}</td>
+                  <td className="hidden px-5 py-3 sm:table-cell">{r.level > 0 ? r.level + 1 : "–"}</td>
                   <td className="px-5 py-3 text-right text-lg font-extrabold tabular-nums">{r.score.toLocaleString("en-US")}</td>
                 </tr>
               ))}

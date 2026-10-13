@@ -5,7 +5,7 @@ import { WalletButton } from "./WalletButton";
 const NAV = [
   { href: "/#games", label: "Games" },
   { href: "/leaderboard", label: "Leaderboard" },
-  { href: "/#how", label: "How it works" },
+  { href: "/create", label: "Make your skin" },
   { href: "/order", label: "Order a game" },
 ];
 

@@ -1,0 +1,26 @@
+import type { Metadata } from "next";
+import { GAMES, gameMeta } from "@/games/registry";
+import { SkinBuilder } from "./SkinBuilder";
+
+export const metadata: Metadata = {
+  title: "Make your coin's arcade",
+  description: "Upload your mascot, pick your colours and sounds, and play every ArcadePad game in your coin's skin, live in your browser.",
+};
+
+export default function CreatePage() {
+  return (
+    <div className="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
+      <span className="chip">Self-serve</span>
+      <h1 className="mt-4 text-[clamp(2.4rem,6vw,4.4rem)] font-extrabold leading-[0.95] tracking-tight">
+        Skin the whole arcade
+        <br />
+        <span className="[box-decoration-break:clone] bg-[linear-gradient(transparent_64%,var(--highlight)_64%,var(--highlight)_90%,transparent_90%)] px-1">in two minutes.</span>
+      </h1>
+      <p className="mt-5 max-w-2xl text-lg text-soft">
+        Drop in your mascot, pick colours and a sound style, and play every game in your coin&apos;s skin right here. Your image is turned into pixel art in your browser and is never uploaded.
+        When it looks right, send it to us and we&apos;ll put it live.
+      </p>
+      <SkinBuilder games={GAMES.map(gameMeta)} />
+    </div>
+  );
+}

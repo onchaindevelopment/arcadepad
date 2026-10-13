@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
-import { replay, runLevels, STEP_MS } from "@/engine";
+import { getGame } from "@/games/registry";
+import { replayGame } from "@/games/core/replay";
+import { STEP_MS } from "@/games/core/types";
 import { getTheme } from "@/themes";
 import { getSession } from "@/lib/session";
 import { store } from "@/lib/store";
 import { randomId } from "@/lib/tokens";
 
-const MAX_INPUT_BYTES = 256 * 1024;
-const MAX_RUN_AGE_MS = 30 * 60_000;
+const MAX_INPUT_CHARS = 2 * 1024 * 1024;
+const MAX_RUN_AGE_MS = 45 * 60_000;
 const CLOCK_SLACK_MS = 4000;
 
 // Anti-cheat: the client's score is only a claim. The server replays the
@@ -14,13 +16,14 @@ const CLOCK_SLACK_MS = 4000;
 // stores the score that the replay produces.
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => null)) as { runId?: string; inputs?: string; score?: number; frames?: number } | null;
-  if (!body?.runId || typeof body.inputs !== "string" || body.inputs.length > MAX_INPUT_BYTES)
+  if (!body?.runId || typeof body.inputs !== "string" || body.inputs.length > MAX_INPUT_CHARS)
     return NextResponse.json({ error: "Bad submission." }, { status: 400 });
 
   const run = await store.getRun(body.runId);
   if (!run) return NextResponse.json({ error: "Unknown run." }, { status: 404 });
   const theme = getTheme(run.theme);
-  if (!theme) return NextResponse.json({ error: "Unknown skin." }, { status: 400 });
+  const game = getGame(run.game ?? "breakout");
+  if (!theme || !game) return NextResponse.json({ error: "Unknown game or skin." }, { status: 400 });
 
   const now = Date.now();
   if (now - run.startedAt > MAX_RUN_AGE_MS) return NextResponse.json({ error: "Run expired." }, { status: 410 });
@@ -30,7 +33,7 @@ export async function POST(req: Request) {
 
   let result;
   try {
-    result = replay({ seed: run.seed, levels: runLevels(theme.coin.ticker) }, body.inputs, { maxFrames: 15 * 60 * 60 });
+    result = replayGame(game, run.seed, { ticker: theme.coin.ticker }, body.inputs);
   } catch {
     return NextResponse.json({ error: "Replay could not be read." }, { status: 422 });
   }
@@ -46,6 +49,7 @@ export async function POST(req: Request) {
   const score = {
     id: randomId(8),
     runId: run.id,
+    game: game.id,
     theme: run.theme,
     wallet: run.wallet,
     chain: run.chain,

@@ -1,22 +1,16 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Game, encodeInputs, runLevels } from "@/engine";
-import { FIELD_W, STEP_MS, type FrameInput, type GameEvent, type GameView } from "@/engine/types";
-import type { SfxName, ThemePack } from "@/themes/types";
-import { Renderer } from "@/game/renderer";
+import { loadGame } from "@/games/client";
+import { BTN, STEP_MS, type GameDef, type GameEngine, type GameMeta, type GameRenderer, type Hud, type Input } from "@/games/core/types";
+import { encodeInputs } from "@/games/core/replay";
+import type { ThemePack } from "@/themes/types";
 import { Synth } from "@/game/audio";
 import { Mascot } from "./Mascot";
 import { WalletButton, useWallet } from "./WalletButton";
 
-type Phase = "title" | "loading" | "playing" | "paused" | "over";
+type Phase = "loading" | "title" | "starting" | "playing" | "paused" | "over";
 type Mood = "idle" | "happy" | "sad";
-interface Hud {
-  score: number;
-  lives: number;
-  level: number;
-  levelTitle: string;
-}
 interface Result {
   score: number;
   level: number;
@@ -28,64 +22,58 @@ interface Result {
   offline?: boolean;
 }
 
-const KEY_SPEED = 9;
 // The cabinet bezel is always the dark ink colour, so its text is always light.
 const BEZEL_TEXT = "#FFF8EE";
+const PULSE_FRAMES = 4;
 const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)];
 
-function sfxFor(e: GameEvent): SfxName | null {
-  switch (e.t) {
-    case "paddle": return "paddle";
-    case "wall": return "wall";
-    case "brickhit": return "brick";
-    case "brickgone": return "brickgone";
-    case "explode": return "explode";
-    case "extra": return e.good ? "extraGood" : "extraBad";
-    case "shot": return "shot";
-    case "launch": return "launch";
-    case "lifelost": return "lost";
-    case "levelclear": return "levelclear";
-    case "gameover": return "gameover";
-    case "won": return "won";
-    default: return null;
-  }
-}
+const KEYMAP: Record<string, number> = {
+  arrowup: BTN.UP, w: BTN.UP,
+  arrowdown: BTN.DOWN, s: BTN.DOWN,
+  arrowleft: BTN.LEFT, a: BTN.LEFT,
+  arrowright: BTN.RIGHT, d: BTN.RIGHT,
+  " ": BTN.FIRE, enter: BTN.FIRE,
+  x: BTN.ALT, shift: BTN.ALT,
+};
 
-export function GameClient({ theme }: { theme: ThemePack }) {
+/** practice: preview mode for unpublished skins (no server run, no leaderboard, no side panel). */
+export function GameHost({ meta, theme, title, practice = false }: { meta: GameMeta; theme: ThemePack; title: string; practice?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [phase, setPhase] = useState<Phase>("title");
-  const [hud, setHud] = useState<Hud>({ score: 0, lives: 3, level: 0, levelTitle: "" });
+  const [phase, setPhase] = useState<Phase>("loading");
+  const [hud, setHud] = useState<Hud>({ score: 0 });
   const [mood, setMood] = useState<Mood>("idle");
   const [toast, setToast] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [muted, setMuted] = useState(false);
-  const [wallet] = useWallet();
   const [copied, setCopied] = useState(false);
+  const [wallet] = useWallet();
 
-  // Mutable game state that the RAF loop reads without re-rendering.
   const g = useRef({
-    game: null as Game | null,
-    renderer: null as Renderer | null,
+    def: null as GameDef<unknown> | null,
+    game: null as GameEngine<unknown> | null,
+    renderer: null as GameRenderer<unknown> | null,
     synth: null as Synth | null,
-    inputs: [] as FrameInput[],
+    inputs: [] as Input[],
     run: null as { runId: string; ranked: boolean } | null,
     raf: 0,
+    idleRaf: 0,
     acc: 0,
     last: 0,
-    targetX: FIELD_W / 2,
-    keys: { left: false, right: false },
-    fireHeld: false,
+    px: Math.round(meta.field.w / 2),
+    py: Math.round(meta.field.h / 2),
+    held: 0,
+    pulses: new Map<number, number>(),
     firePressed: false,
-    phase: "title" as Phase,
-    hud: { score: 0, lives: 3, level: 0, levelTitle: "" } as Hud,
+    phase: "loading" as Phase,
+    hudKey: "",
     moodTimer: 0,
     toastTimer: 0,
-    view: null as GameView | null,
+    swipeStart: null as null | { x: number; y: number; id: number },
     /** Dev-only autoplay used by automated play-tests. */
-    autoplay: null as null | ((v: GameView) => number),
-    finishFn: null as null | (() => Promise<void>),
+    autoplay: false,
     loopFn: null as null | ((t: number) => void),
+    finishFn: null as null | (() => Promise<void>),
   });
 
   const setPhaseBoth = useCallback((p: Phase) => {
@@ -93,40 +81,41 @@ export function GameClient({ theme }: { theme: ThemePack }) {
     setPhase(p);
   }, []);
 
-  // Renderer + synth live for the component's lifetime.
+  // Load the game definition + renderer, show an idle preview.
   useEffect(() => {
     const s = g.current;
-    // Dev-only hook for automated play-testing (never shipped in production builds).
     if (process.env.NODE_ENV !== "production") (window as unknown as { __gp?: typeof s }).__gp = s;
-    s.renderer = new Renderer(canvasRef.current!, theme);
+    let alive = true;
     s.synth = new Synth(theme.sfx, theme.music);
-    let muteSaved = false;
+    let saved = false;
     try {
-      muteSaved = localStorage.getItem("gp_muted") === "1";
+      saved = localStorage.getItem("gp_muted") === "1";
     } catch {}
-    s.synth.setMuted(muteSaved);
+    s.synth.setMuted(saved);
     // Restoring a per-browser preference after mount keeps hydration consistent.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMuted(muteSaved);
-    // Title screen preview: a fresh level standing still.
-    const preview = new Game({ seed: 1, levels: runLevels(theme.coin.ticker) });
-    s.view = preview.view();
-    s.renderer.draw(s.view, 16);
-    let raf = 0;
-    const idle = (t: number) => {
-      if (s.phase === "title" || s.phase === "over") {
-        s.renderer!.draw(s.view!, 16);
-      }
-      raf = requestAnimationFrame(idle);
-      void t;
-    };
-    raf = requestAnimationFrame(idle);
+    setMuted(saved);
+    loadGame(meta.id).then(({ def, createRenderer }) => {
+      if (!alive) return;
+      s.def = def;
+      s.renderer = createRenderer(canvasRef.current!, theme);
+      s.game = def.create(1, { ticker: theme.coin.ticker });
+      const idle = (t: number) => {
+        if (s.phase !== "playing") s.renderer?.draw(s.game!.view(), 16);
+        s.idleRaf = requestAnimationFrame(idle);
+        void t;
+      };
+      s.idleRaf = requestAnimationFrame(idle);
+      setPhaseBoth("title");
+    });
     return () => {
-      cancelAnimationFrame(raf);
+      alive = false;
       cancelAnimationFrame(s.raf);
+      cancelAnimationFrame(s.idleRaf);
+      s.renderer?.dispose?.();
       s.synth?.dispose();
     };
-  }, [theme]);
+  }, [meta.id, theme, setPhaseBoth]);
 
   const flashMood = useCallback((m: Mood, ms: number) => {
     window.clearTimeout(g.current.moodTimer);
@@ -166,6 +155,21 @@ export function GameClient({ theme }: { theme: ThemePack }) {
     }
   }, [flashMood, setPhaseBoth]);
 
+  const currentInput = useCallback((): Input => {
+    const s = g.current;
+    let b = s.held;
+    for (const [bit, n] of s.pulses) {
+      if (n > 0) {
+        b |= bit;
+        s.pulses.set(bit, n - 1);
+      }
+    }
+    if (s.firePressed) b |= BTN.FIRE;
+    s.firePressed = false;
+    if (s.autoplay && s.def?.bot && s.game) return s.def.bot(s.game.view(), s.game.frame);
+    return meta.input.pointer ? { x: s.px, y: s.py, b } : { x: 0, y: 0, b };
+  }, [meta.input.pointer]);
+
   const loop = useCallback(
     (t: number) => {
       const s = g.current;
@@ -177,47 +181,36 @@ export function GameClient({ theme }: { theme: ThemePack }) {
       while (s.acc >= STEP_MS && steps < 6) {
         s.acc -= STEP_MS;
         steps++;
-        if (s.autoplay && s.view) {
-          s.targetX = s.autoplay(s.view);
-          s.firePressed = true;
-        }
-        if (s.keys.left) s.targetX -= KEY_SPEED;
-        if (s.keys.right) s.targetX += KEY_SPEED;
-        s.targetX = Math.max(0, Math.min(FIELD_W, s.targetX));
-        const input: FrameInput = { x: Math.round(s.targetX), fire: s.fireHeld || s.firePressed };
-        s.firePressed = false;
+        const input = currentInput();
         s.inputs.push(input);
-        const v = s.game.step(input);
-        s.view = v;
-        s.renderer!.events(v.events);
-        for (const e of v.events) {
-          const snd = sfxFor(e);
-          if (snd) s.synth!.play(snd);
-          if (e.t === "levelclear") {
-            flashMood("happy", 1600);
-            showToast(pick(theme.copy.levelClear));
-          } else if (e.t === "lifelost") {
-            flashMood("sad", 1500);
-            showToast(pick(theme.copy.lifeLost));
-          } else if (e.t === "extra" && e.good) flashMood("happy", 700);
+        s.game.step(input);
+        const evts = s.game.events;
+        if (evts.length) {
+          s.renderer!.onEvents(evts, s.game.view());
+          for (const e of evts) {
+            if (e.sfx) s.synth!.play(e.sfx);
+            if (e.mood) flashMood(e.mood, e.mood === "sad" ? 1500 : 900);
+            if (e.toast === "levelClear") showToast(pick(theme.copy.levelClear));
+            else if (e.toast === "lifeLost") showToast(pick(theme.copy.lifeLost));
+          }
         }
         if (s.game.done) {
-          s.renderer!.draw(v, dt);
+          s.renderer!.draw(s.game.view(), dt);
           void finish();
           return;
         }
       }
-      if (s.acc > STEP_MS * 6) s.acc = 0; // dropped frames: don't spiral
-      const v = s.view!;
-      s.renderer!.draw(v, dt);
-      const h = s.hud;
-      if (h.score !== v.score || h.lives !== v.lives || h.level !== v.level) {
-        s.hud = { score: v.score, lives: v.lives, level: v.level, levelTitle: v.levelTitle };
-        setHud(s.hud);
+      if (s.acc > STEP_MS * 6) s.acc = 0;
+      s.renderer!.draw(s.game.view(), dt);
+      const h = s.game.hud();
+      const key = `${h.score}|${h.lives}|${h.level}|${h.label}`;
+      if (key !== s.hudKey) {
+        s.hudKey = key;
+        setHud(h);
       }
       s.raf = requestAnimationFrame(s.loopFn!);
     },
-    [finish, flashMood, showToast, theme],
+    [currentInput, finish, flashMood, showToast, theme],
   );
 
   useEffect(() => {
@@ -245,13 +238,15 @@ export function GameClient({ theme }: { theme: ThemePack }) {
 
   const start = useCallback(async () => {
     const s = g.current;
+    if (!s.def) return;
     s.synth?.unlock();
     setResult(null);
-    setPhaseBoth("loading");
+    setPhaseBoth("starting");
     let seed: number;
     s.run = null;
-    try {
-      const r = await fetch("/api/run/start", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ theme: theme.id }) });
+    if (practice) seed = crypto.getRandomValues(new Uint32Array(1))[0];
+    else try {
+      const r = await fetch("/api/run/start", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ game: meta.id, theme: theme.id }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error);
       seed = d.seed;
@@ -260,48 +255,69 @@ export function GameClient({ theme }: { theme: ThemePack }) {
       seed = crypto.getRandomValues(new Uint32Array(1))[0];
       showToast("Offline: practice run, score won't be saved", 2600);
     }
-    s.game = new Game({ seed, levels: runLevels(theme.coin.ticker) });
+    s.game = s.def.create(seed, { ticker: theme.coin.ticker });
     s.inputs = [];
-    s.targetX = FIELD_W / 2;
-    s.view = s.game.view();
-    s.hud = { score: 0, lives: s.view.lives, level: 0, levelTitle: s.view.levelTitle };
-    setHud(s.hud);
-    showToast(theme.copy.start, 2600);
+    s.held = 0;
+    s.pulses.clear();
+    s.hudKey = "";
+    setHud(s.game.hud());
+    showToast(theme.copy.start.replace(/Click or press Space to [a-z]+\./i, "").trim() || "Go!", 2200);
     resume();
-  }, [resume, setPhaseBoth, showToast, theme]);
+  }, [meta.id, practice, resume, setPhaseBoth, showToast, theme]);
 
-  // Input
+  // Input wiring
   useEffect(() => {
     const s = g.current;
     const wrap = wrapRef.current!;
-    const toField = (clientX: number) => {
+    const toField = (cx: number, cy: number) => {
       const r = canvasRef.current!.getBoundingClientRect();
-      return ((clientX - r.left) / r.width) * FIELD_W;
+      return {
+        x: Math.max(0, Math.min(meta.field.w, Math.round(((cx - r.left) / r.width) * meta.field.w))),
+        y: Math.max(0, Math.min(meta.field.h, Math.round(((cy - r.top) / r.height) * meta.field.h))),
+      };
     };
     const onMove = (e: PointerEvent) => {
-      if (s.phase === "playing") s.targetX = toField(e.clientX);
+      if (s.phase !== "playing") return;
+      const p = toField(e.clientX, e.clientY);
+      s.px = p.x;
+      s.py = p.y;
     };
     const onDown = (e: PointerEvent) => {
       if (s.phase !== "playing") return;
-      s.targetX = toField(e.clientX);
-      s.fireHeld = true;
+      const p = toField(e.clientX, e.clientY);
+      s.px = p.x;
+      s.py = p.y;
+      if (meta.input.swipe && e.pointerType !== "mouse") {
+        s.swipeStart = { x: e.clientX, y: e.clientY, id: e.pointerId };
+        wrap.setPointerCapture(e.pointerId);
+        return;
+      }
+      s.held |= BTN.FIRE;
       s.firePressed = true;
       if (e.pointerType !== "mouse") wrap.setPointerCapture(e.pointerId);
     };
-    const onUp = () => (s.fireHeld = false);
+    const onUp = (e: PointerEvent) => {
+      s.held &= ~BTN.FIRE;
+      const st = s.swipeStart;
+      if (st && st.id === e.pointerId) {
+        s.swipeStart = null;
+        const dx = e.clientX - st.x;
+        const dy = e.clientY - st.y;
+        const tm = meta.input.touchMap ?? {};
+        if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) s.pulses.set(tm.tap ?? BTN.FIRE, PULSE_FRAMES);
+        else if (Math.abs(dx) > Math.abs(dy)) s.pulses.set(dx > 0 ? (tm.right ?? BTN.RIGHT) : (tm.left ?? BTN.LEFT), PULSE_FRAMES);
+        else s.pulses.set(dy > 0 ? (tm.down ?? BTN.DOWN) : (tm.up ?? BTN.UP), PULSE_FRAMES);
+      }
+    };
     const onKey = (e: KeyboardEvent, down: boolean) => {
       const k = e.key.toLowerCase();
-      if (k === "arrowleft" || k === "a") s.keys.left = down;
-      else if (k === "arrowright" || k === "d") s.keys.right = down;
-      else if (k === " " || k === "arrowup" || k === "w") {
-        if (s.phase === "playing") {
-          s.fireHeld = down;
-          if (down) s.firePressed = true;
-        }
-      } else if (down && (k === "p" || k === "escape")) {
+      if (down && (k === "p" || k === "escape")) {
         if (s.phase === "playing") pause();
         else if (s.phase === "paused") resume();
-      } else if (down && k === "m") {
+        e.preventDefault();
+        return;
+      }
+      if (down && k === "m") {
         setMuted((m) => {
           const n = !m;
           s.synth?.setMuted(n);
@@ -310,17 +326,26 @@ export function GameClient({ theme }: { theme: ThemePack }) {
           } catch {}
           return n;
         });
-      } else return;
+        return;
+      }
+      const bit = KEYMAP[k];
+      if (!bit) return;
+      if (down) {
+        if (!(s.held & bit) && bit === BTN.FIRE) s.firePressed = true;
+        s.held |= bit;
+      } else s.held &= ~bit;
       if (s.phase === "playing" || s.phase === "paused") e.preventDefault();
     };
     const kd = (e: KeyboardEvent) => onKey(e, true);
     const ku = (e: KeyboardEvent) => onKey(e, false);
+    const blur = () => (s.held = 0);
     const vis = () => document.hidden && pause();
     wrap.addEventListener("pointermove", onMove);
     wrap.addEventListener("pointerdown", onDown);
     window.addEventListener("pointerup", onUp);
     window.addEventListener("keydown", kd);
     window.addEventListener("keyup", ku);
+    window.addEventListener("blur", blur);
     document.addEventListener("visibilitychange", vis);
     return () => {
       wrap.removeEventListener("pointermove", onMove);
@@ -328,9 +353,10 @@ export function GameClient({ theme }: { theme: ThemePack }) {
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("keydown", kd);
       window.removeEventListener("keyup", ku);
+      window.removeEventListener("blur", blur);
       document.removeEventListener("visibilitychange", vis);
     };
-  }, [pause, resume]);
+  }, [meta.field.h, meta.field.w, meta.input.swipe, meta.input.touchMap, pause, resume]);
 
   const toggleMute = () => {
     const n = !muted;
@@ -342,57 +368,63 @@ export function GameClient({ theme }: { theme: ThemePack }) {
   };
 
   const p = theme.palette;
+  const portrait = meta.field.h > meta.field.w;
   const shareUrl = result?.scoreId ? `${typeof window !== "undefined" ? window.location.origin : ""}/s/${result.scoreId}` : "";
-  const shareText = result ? `I scored ${result.score.toLocaleString("en-US")} in ${theme.game.title} $${theme.coin.ticker} 🕹️ Can you beat it?` : "";
+  const shareText = result ? `I scored ${result.score.toLocaleString("en-US")} in ${title} $${theme.coin.ticker} 🕹️ Can you beat it?` : "";
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_17rem]">
-      <div>
-        {/* Cabinet */}
-        <div className="slab overflow-hidden p-2.5 sm:p-3" style={{ background: p.ink }}>
+    <div className={practice ? "grid gap-6" : "grid gap-6 lg:grid-cols-[1fr_17rem]"}>
+      <div className="min-w-0">
+        <div className={`slab mx-auto overflow-hidden p-2.5 sm:p-3 ${portrait ? "max-w-[30rem]" : ""}`} style={{ background: p.ink }}>
           <div className="mb-2.5 flex items-center justify-between gap-3 px-2 text-sm sm:text-base" style={{ color: BEZEL_TEXT }}>
             <span className="pixel" aria-label={`Score ${hud.score}`}>
               <span style={{ color: p.primary }}>SCORE</span> {hud.score.toLocaleString("en-US")}
             </span>
-            <span className="pixel hidden sm:inline" style={{ color: p.accent }}>
-              LV {hud.level + 1}
-            </span>
-            <span className="pixel" aria-label={`${hud.lives} lives`}>
-              {"♥".repeat(Math.max(0, Math.min(hud.lives, 9)))}
-              <span className="opacity-30">{hud.lives <= 0 ? "♥" : ""}</span>
-            </span>
+            {hud.level !== undefined && (
+              <span className="pixel hidden sm:inline" style={{ color: p.accent }}>
+                LV {hud.level}
+              </span>
+            )}
+            {hud.lives !== undefined ? (
+              <span className="pixel" aria-label={`${hud.lives} lives`}>
+                {"♥".repeat(Math.max(0, Math.min(hud.lives, 9)))}
+              </span>
+            ) : (
+              <span className="pixel truncate text-xs opacity-80">{hud.label}</span>
+            )}
           </div>
           <div
             ref={wrapRef}
             tabIndex={0}
             role="application"
-            aria-label={`${theme.game.title}. Move with mouse, touch or arrow keys. Space or click to launch and fire. P to pause, M to mute.`}
-            className="crt relative touch-none select-none overflow-hidden rounded-[14px] outline-none focus-visible:ring-4"
-            style={{ cursor: phase === "playing" ? "none" : "default", background: p.bg }}
+            aria-label={`${title}. ${meta.controls} P to pause, M to mute.`}
+            className="crt relative mx-auto touch-none select-none overflow-hidden rounded-[14px] outline-none"
+            style={{ cursor: phase === "playing" && meta.input.pointer ? "crosshair" : "default", background: p.bg, aspectRatio: `${meta.field.w} / ${meta.field.h}`, maxHeight: portrait ? "72vh" : undefined }}
           >
-            <canvas ref={canvasRef} className="block aspect-[4/3] h-auto w-full" style={{ imageRendering: "pixelated" }} />
+            <canvas ref={canvasRef} className="block h-full w-full" style={{ imageRendering: "pixelated" }} />
 
             {toast && phase === "playing" && (
-              <div className="pointer-events-none absolute inset-x-0 top-[38%] text-center" aria-hidden>
+              <div className="pointer-events-none absolute inset-x-0 top-[36%] px-3 text-center" aria-hidden>
                 <span className="pixel pop-in inline-block rounded-xl border-2 px-4 py-2 text-sm sm:text-lg" style={{ background: p.ink, color: p.primary, borderColor: p.primary }}>
                   {toast}
                 </span>
               </div>
             )}
 
-            {(phase === "title" || phase === "loading") && (
-              <div className="absolute inset-0 grid place-items-center p-4 text-center" style={{ background: `${p.bg}d9`, color: p.text }}>
+            {(phase === "loading" || phase === "title" || phase === "starting") && (
+              <div className="absolute inset-0 grid place-items-center overflow-y-auto p-4 text-center" style={{ background: `${p.bg}d9`, color: p.text }}>
                 <div className="pop-in grid justify-items-center">
-                  <Mascot theme={theme} size={112} className="floaty" />
-                  <p className="pixel mt-3 text-sm sm:text-base" style={{ color: p.primary }}>
+                  <Mascot theme={theme} size={portrait ? 96 : 104} className="floaty" />
+                  <p className="pixel mt-3 text-xs sm:text-sm" style={{ color: p.primary }}>
                     ${theme.coin.ticker} PRESENTS
                   </p>
-                  <h2 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-5xl">{theme.game.title}</h2>
-                  <p className="mt-2 max-w-md opacity-85">{theme.game.tagline}</p>
-                  <button className="btn mt-6 text-lg" style={{ background: p.primary }} onClick={start} disabled={phase === "loading"} autoFocus>
-                    {phase === "loading" ? "Loading…" : "▶ Insert coin"}
+                  <h2 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-5xl">{title}</h2>
+                  <p className="mt-2 max-w-md text-sm opacity-85 sm:text-base">{meta.tagline}</p>
+                  <button className="btn mt-5 text-lg" style={{ background: p.primary }} onClick={start} disabled={phase !== "title"} autoFocus>
+                    {phase === "title" ? "▶ Insert coin" : "Loading…"}
                   </button>
-                  <p className="mt-3 text-xs opacity-70">{wallet.address ? "Signed in: this run goes on the leaderboard." : "Playing as guest. Connect a wallet to rank."}</p>
+                  <p className="mt-3 text-xs opacity-70">{meta.controls}</p>
+                  {!practice && <p className="mt-1 text-xs opacity-60">{wallet.address ? "Signed in: this run goes on the leaderboard." : "Playing as guest. Connect a wallet to rank."}</p>}
                 </div>
               </div>
             )}
@@ -411,7 +443,7 @@ export function GameClient({ theme }: { theme: ThemePack }) {
             {phase === "over" && result && (
               <div className="absolute inset-0 grid place-items-center overflow-y-auto p-4 text-center" style={{ background: `${p.bg}e6`, color: p.text }}>
                 <div className="pop-in grid justify-items-center">
-                  <Mascot theme={theme} mood={result.status === "won" ? "happy" : "sad"} size={80} />
+                  <Mascot theme={theme} mood={result.status === "won" ? "happy" : "sad"} size={76} />
                   <p className="pixel mt-2 text-sm" style={{ color: p.accent }}>
                     {result.status === "won" ? "ALL CLEAR" : "GAME OVER"}
                   </p>
@@ -425,7 +457,7 @@ export function GameClient({ theme }: { theme: ThemePack }) {
             )}
           </div>
           <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 px-2 text-xs" style={{ color: `${BEZEL_TEXT}b3` }}>
-            <span className="pixel">MOUSE / TOUCH / ← → · SPACE FIRE · P PAUSE</span>
+            <span className="pixel truncate">{meta.controls.toUpperCase()}</span>
             <button className="pixel rounded-full border px-2 py-0.5" style={{ borderColor: `${BEZEL_TEXT}55`, color: BEZEL_TEXT }} onClick={toggleMute} aria-pressed={muted}>
               {muted ? "SOUND OFF" : "SOUND ON"}
             </button>
@@ -436,11 +468,10 @@ export function GameClient({ theme }: { theme: ThemePack }) {
           {phase === "over" && result ? `Game over. Score ${result.score}. ${result.scoreId ? "Score verified." : ""}` : ""}
         </div>
 
-        {/* Results / share */}
         {phase === "over" && result && (
           <section className="slab pop-in mt-6 p-5 sm:p-6" aria-label="Your run">
             {!result.scoreId && !result.error && !result.offline && <p className="font-semibold">Verifying your run on the server…</p>}
-            {result.offline && <p className="font-semibold">Practice run (offline). Scores are saved when the server can be reached.</p>}
+            {result.offline && <p className="font-semibold">{practice ? "Preview run. Scores and leaderboards switch on when this skin goes live." : "Practice run (offline). Scores are saved when the server can be reached."}</p>}
             {result.error && (
               <p role="alert" className="font-semibold text-hot">
                 {result.error}
@@ -453,7 +484,7 @@ export function GameClient({ theme }: { theme: ThemePack }) {
                 <div>
                   <p className="chip">✓ Verified by server replay</p>
                   <p className="mt-3 text-lg font-bold">
-                    {result.ranked ? (result.rank ? `Rank #${result.rank} on the $${theme.coin.ticker} board` : "On the board") : "Guest run: not on the leaderboard"}
+                    {result.ranked ? (result.rank ? `Rank #${result.rank} on the $${theme.coin.ticker} ${meta.name} board` : "On the board") : "Guest run: not on the leaderboard"}
                   </p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <a className="btn btn-sm btn-sun" href={`https://x.com/intent/post?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer">
@@ -488,14 +519,13 @@ export function GameClient({ theme }: { theme: ThemePack }) {
         )}
       </div>
 
-      {/* Side panel */}
-      <aside className="grid content-start gap-4">
+      {!practice && <aside className="grid content-start gap-4">
         <div className="slab grid justify-items-center p-4 text-center" style={{ background: p.bg2, color: p.text }}>
           <Mascot theme={theme} mood={mood} size={120} label={`${theme.mascot.name} looks ${mood === "idle" ? "ready" : mood}`} />
           <p className="pixel mt-2 text-sm" style={{ color: p.primary }}>
             {theme.mascot.name.toUpperCase()}
           </p>
-          <p className="text-sm opacity-80">{hud.levelTitle || "Ready"}</p>
+          <p className="text-sm opacity-80">{hud.label || "Ready"}</p>
         </div>
         <div className="slab p-4">
           <p className="font-bold">Ranked runs</p>
@@ -504,11 +534,13 @@ export function GameClient({ theme }: { theme: ThemePack }) {
             <WalletButton compact />
           </div>
         </div>
-        <Link href={`/leaderboard?coin=${theme.id}`} className="btn btn-plain">
-          ${theme.coin.ticker} leaderboard →
+        <Link href={`/leaderboard?game=${meta.id}&coin=${theme.id}`} className="btn btn-plain">
+          ${theme.coin.ticker} {meta.name} board →
         </Link>
-        <p className="px-1 text-xs text-soft">${theme.coin.ticker} is a fictional demo coin. Scores are bragging rights only: no prizes, no token rewards.</p>
-      </aside>
+        <p className="px-1 text-xs text-soft">
+          {meta.credits.basedOn === "Original" ? "An ArcadePad original." : `Based on ${meta.credits.basedOn} (${meta.credits.licence}).`} {theme.coin.fictional ? `$${theme.coin.ticker} is a fictional demo coin. ` : ""}Scores are bragging rights only: no prizes, no token rewards.
+        </p>
+      </aside>}
     </div>
   );
 }
