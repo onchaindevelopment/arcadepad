@@ -1,0 +1,10 @@
+.next
+node_modules
+data
+docs
+.env*
+.claude
+CLAUDE.md
+AGENTS.md
+BUILD-REPORT.md
+scripts/e2e-api.mjs

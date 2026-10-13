@@ -1,0 +1,37 @@
+{
+  "name": "game-port",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 4155",
+    "build": "next build",
+    "start": "next start -p 4155",
+    "lint": "eslint",
+    "test:themes": "node --test src/themes/*.test.ts",
+    "skin:new": "node scripts/new-skin.mjs",
+    "test:engine": "node --test \"src/engine/**/*.test.ts\"",
+    "test:e2e": "node scripts/e2e-api.mjs"
+  },
+  "dependencies": {
+    "@noble/curves": "^2.4.0",
+    "@noble/hashes": "^2.4.0",
+    "@scure/base": "^2.4.0",
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
+    "viem": "^2.57.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/turbopack": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "license": "GPL-3.0-or-later",
+  "author": "ArcadePad"
+}
