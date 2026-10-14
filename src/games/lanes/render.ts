@@ -10,14 +10,14 @@ import {
 
 // ---------------------------------------------------------------- camera
 const CX = FIELD_W / 2;
-const HORIZON = 205;
+const HORIZON = 150;
 const CAM_BACK = 5.5; // camera distance behind the runner
-const CAM_H = 2.6; // camera height (render units)
+const CAM_H = 3.2; // camera height (render units)
 const F = ((FIELD_H - 70 - HORIZON) * CAM_BACK) / CAM_H; // runner's feet land at y = FIELD_H - 70
 const LW = 0.8; // lane width in render units
 const RY = 0.75; // world height -> render height
 const NEAR = 0.7;
-const FAR = 95;
+const FAR = 150;
 const ROAD_HALF = 1.5 * LW + 0.12;
 
 /** Parse #rrggbb and lighten (amt > 0) or darken (amt < 0). */
@@ -497,7 +497,12 @@ export default function createRenderer(canvas: HTMLCanvasElement, theme: ThemePa
       for (const pw of v.powers) if (pw.z > camZ + NEAR && pw.z < camZ + FAR) items.push({ z: pw.z, draw: () => drawPower(pw) });
       items.push({ z: v.dist + 0.31, draw: () => drawRunner(v) });
       items.sort((a, b) => b.z - a.z);
-      for (const it of items) it.draw();
+      for (const it of items) {
+        const d = it.z - camZ;
+        ctx.globalAlpha = d > FAR * 0.7 ? Math.max(0, (FAR - d) / (FAR * 0.3)) : 1;
+        it.draw();
+      }
+      ctx.globalAlpha = 1;
 
       // Dust puffs while running on a surface.
       dustT += dtMs;

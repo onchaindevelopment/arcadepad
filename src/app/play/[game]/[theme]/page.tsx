@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { THEMES, getTheme } from "@/themes";
@@ -20,7 +19,7 @@ export async function generateMetadata(props: PageProps<"/play/[game]/[theme]">)
 
 export default function PlayPage(props: PageProps<"/play/[game]/[theme]">) {
   return (
-    <Suspense fallback={<div className="mx-auto max-w-6xl px-4 pt-8 sm:px-6"><div className="slab aspect-[4/3] w-full max-w-[52rem] animate-pulse bg-paper-2" /></div>}>
+    <Suspense fallback={<div className="play-fixed fixed inset-0 z-50 bg-[#140a33]" />}>
       <Play params={props.params} />
     </Suspense>
   );
@@ -33,23 +32,17 @@ async function Play({ params }: { params: PageProps<"/play/[game]/[theme]">["par
   if (!game || !theme) notFound();
   const title = gameTitle(game, theme);
   return (
-    <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-6">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <Link href={`/play/${game.id}`} className="chip shrink-0">
-            ← {game.name}
-          </Link>
-          <h1 className="truncate text-2xl font-extrabold tracking-tight sm:text-3xl">{title}</h1>
-        </div>
-        <nav aria-label="Other skins" className="flex gap-2">
-          {THEMES.filter((t) => t.id !== theme.id).map((t) => (
-            <Link key={t.id} href={`/play/${game.id}/${t.id}`} className="btn btn-sm btn-plain">
-              ${t.coin.ticker}
-            </Link>
-          ))}
-        </nav>
-      </div>
-      <GameHost key={`${game.id}-${theme.id}`} meta={gameMeta(game)} theme={theme} title={title} />
+    // Full-viewport stage: the game fills the screen; the page never scrolls (see .play-fixed in globals.css).
+    <div className="play-fixed fixed inset-0 z-50" style={{ background: theme.palette.bg }}>
+      <h1 className="sr-only">{title}</h1>
+      <GameHost
+        key={`${game.id}-${theme.id}`}
+        meta={gameMeta(game)}
+        theme={theme}
+        title={title}
+        backHref={`/play/${game.id}`}
+        skinLinks={THEMES.filter((t) => t.id !== theme.id).map((t) => ({ href: `/play/${game.id}/${t.id}`, label: `Play as $${t.coin.ticker}` }))}
+      />
     </div>
   );
 }

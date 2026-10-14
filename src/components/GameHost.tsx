@@ -37,9 +37,31 @@ const KEYMAP: Record<string, number> = {
 };
 
 /** practice: preview mode for unpublished skins (no server run, no leaderboard, no side panel). */
-export function GameHost({ meta, theme, title, practice = false }: { meta: GameMeta; theme: ThemePack; title: string; practice?: boolean }) {
+/**
+ * Full-screen game stage: fills its container (the play page makes that the whole
+ * viewport), scales the game to fit with letterboxing, never scrolls.
+ * practice: preview mode for unpublished skins (no server run, no leaderboard).
+ */
+export function GameHost({
+  meta,
+  theme,
+  title,
+  practice = false,
+  backHref,
+  skinLinks = [],
+}: {
+  meta: GameMeta;
+  theme: ThemePack;
+  title: string;
+  practice?: boolean;
+  backHref?: string;
+  skinLinks?: { href: string; label: string }[];
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState({ w: 0, h: 0 });
+  const [isFs, setIsFs] = useState(false);
   const [phase, setPhase] = useState<Phase>("loading");
   const [hud, setHud] = useState<Hud>({ score: 0 });
   const [mood, setMood] = useState<Mood>("idle");
@@ -236,9 +258,21 @@ export function GameHost({ meta, theme, title, practice = false }: { meta: GameM
     setPhaseBoth("paused");
   }, [setPhaseBoth]);
 
+  const enterFullscreen = useCallback(() => {
+    const el = stageRef.current;
+    if (!el || document.fullscreenElement || !document.fullscreenEnabled) return;
+    el.requestFullscreen({ navigationUI: "hide" })
+      .then(() => {
+        const o = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
+        return o.lock?.(meta.field.w > meta.field.h ? "landscape" : "portrait");
+      })
+      .catch(() => {});
+  }, [meta.field.h, meta.field.w]);
+
   const start = useCallback(async () => {
     const s = g.current;
     if (!s.def) return;
+    if (!practice && window.matchMedia("(pointer: coarse)").matches) enterFullscreen();
     s.synth?.unlock();
     setResult(null);
     setPhaseBoth("starting");
@@ -263,17 +297,21 @@ export function GameHost({ meta, theme, title, practice = false }: { meta: GameM
     setHud(s.game.hud());
     showToast(theme.copy.start.replace(/Click or press Space to [a-z]+\./i, "").trim() || "Go!", 2200);
     resume();
-  }, [meta.id, practice, resume, setPhaseBoth, showToast, theme]);
+  }, [enterFullscreen, meta.id, practice, resume, setPhaseBoth, showToast, theme]);
 
   // Input wiring
   useEffect(() => {
     const s = g.current;
     const wrap = wrapRef.current!;
+    // The canvas is object-fit: contain, so map through the letterboxed content box.
     const toField = (cx: number, cy: number) => {
       const r = canvasRef.current!.getBoundingClientRect();
+      const k = Math.min(r.width / meta.field.w, r.height / meta.field.h);
+      const ox = r.left + (r.width - meta.field.w * k) / 2;
+      const oy = r.top + (r.height - meta.field.h * k) / 2;
       return {
-        x: Math.max(0, Math.min(meta.field.w, Math.round(((cx - r.left) / r.width) * meta.field.w))),
-        y: Math.max(0, Math.min(meta.field.h, Math.round(((cy - r.top) / r.height) * meta.field.h))),
+        x: Math.max(0, Math.min(meta.field.w, Math.round((cx - ox) / k))),
+        y: Math.max(0, Math.min(meta.field.h, Math.round((cy - oy) / k))),
       };
     };
     const onMove = (e: PointerEvent) => {
@@ -367,126 +405,167 @@ export function GameHost({ meta, theme, title, practice = false }: { meta: GameM
     } catch {}
   };
 
+  // Track the playfield size so overlays scale to fit (they never scroll).
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setBox({ w: e.contentRect.width, h: e.contentRect.height }));
+    ro.observe(el);
+    const onFs = () => setIsFs(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onFs);
+    return () => {
+      ro.disconnect();
+      document.removeEventListener("fullscreenchange", onFs);
+    };
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
+    else enterFullscreen();
+  };
+
   const p = theme.palette;
-  const portrait = meta.field.h > meta.field.w;
   const shareUrl = result?.scoreId ? `${typeof window !== "undefined" ? window.location.origin : ""}/s/${result.scoreId}` : "";
   const shareText = result ? `I scored ${result.score.toLocaleString("en-US")} in ${title} $${theme.coin.ticker} 🕹️ Can you beat it?` : "";
+  // Overlay sizing from the playfield height: everything shrinks to fit, nothing scrolls.
+  const H = box.h || 600;
+  const compact = H < 420;
+  const tiny = H < 300;
+  const mascotPx = Math.round(Math.max(36, Math.min(108, H * 0.17)));
+  const titlePx = Math.round(Math.max(20, Math.min(56, H * 0.085)));
+  const scorePx = Math.round(Math.max(30, Math.min(96, H * 0.16)));
+  const overlayBg = `${p.bg}e6`;
+  const barBtn = "pixel shrink-0 rounded-full border px-2.5 py-1 text-[0.62rem] leading-none sm:text-[0.7rem]";
+  const statusLine = result
+    ? result.offline
+      ? practice
+        ? "Preview run: leaderboards switch on when this skin goes live."
+        : "Practice run (offline): score not saved."
+      : result.error
+        ? result.error
+        : !result.scoreId
+          ? "Verifying your run…"
+          : result.ranked
+            ? `✓ Verified · ${result.rank ? `Rank #${result.rank} on the $${theme.coin.ticker} board` : "on the board"}`
+            : "✓ Verified · guest run (not ranked)"
+    : "";
 
   return (
-    <div className={practice ? "grid gap-6" : "grid gap-6 lg:grid-cols-[1fr_17rem]"}>
-      <div className="min-w-0">
-        <div className={`slab mx-auto overflow-hidden p-2.5 sm:p-3 ${portrait ? "max-w-[30rem]" : ""}`} style={{ background: p.ink }}>
-          <div className="mb-2.5 flex items-center justify-between gap-3 px-2 text-sm sm:text-base" style={{ color: BEZEL_TEXT }}>
-            <span className="pixel" aria-label={`Score ${hud.score}`}>
-              <span style={{ color: p.primary }}>SCORE</span> {hud.score.toLocaleString("en-US")}
+    <div ref={stageRef} className="game-stage relative flex h-full w-full flex-col overflow-hidden" style={{ background: p.bg, color: p.text }}>
+      {/* Top bar */}
+      <div className="relative z-20 flex shrink-0 items-center gap-2 px-2.5 py-2 sm:gap-3 sm:px-4" style={{ background: p.ink, color: BEZEL_TEXT }}>
+        {backHref && (
+          <Link href={backHref} className={barBtn} style={{ borderColor: `${BEZEL_TEXT}55` }} aria-label="Back to game page">
+            ←
+          </Link>
+        )}
+        <Mascot theme={theme} mood={mood} size={26} className="shrink-0" />
+        <span className="hidden min-w-0 truncate text-sm font-extrabold sm:inline">{title}</span>
+        <span className="pixel ml-auto shrink-0 text-xs sm:text-sm" aria-label={`Score ${hud.score}`}>
+          <span style={{ color: p.primary }}>SCORE</span> {hud.score.toLocaleString("en-US")}
+        </span>
+        {hud.lives !== undefined && (
+          <span className="pixel shrink-0 text-xs sm:text-sm" aria-label={`${hud.lives} lives`}>
+            {"♥".repeat(Math.max(0, Math.min(hud.lives, 6)))}
+          </span>
+        )}
+        {hud.label && <span className="pixel hidden max-w-[12rem] truncate text-[0.65rem] opacity-80 md:inline">{hud.label}</span>}
+        <button className={barBtn} style={{ borderColor: `${BEZEL_TEXT}55` }} onClick={toggleMute} aria-pressed={muted} aria-label={muted ? "Sound off" : "Sound on"}>
+          {muted ? "🔇" : "🔊"}
+        </button>
+        <button className={barBtn} style={{ borderColor: `${BEZEL_TEXT}55` }} onClick={toggleFullscreen} aria-pressed={isFs} aria-label={isFs ? "Exit full screen" : "Full screen"}>
+          {isFs ? "⤡" : "⤢"}
+        </button>
+      </div>
+
+      {/* Playfield: the canvas scales to fit (letterboxed), overlays sit on top */}
+      <div
+        ref={wrapRef}
+        tabIndex={0}
+        role="application"
+        aria-label={`${title}. ${meta.controls} P to pause, M to mute.`}
+        className="crt relative min-h-0 flex-1 touch-none select-none overflow-hidden outline-none"
+        style={{ cursor: phase === "playing" && meta.input.pointer ? "crosshair" : "default" }}
+      >
+        <canvas ref={canvasRef} className="absolute inset-0 block h-full w-full object-contain" style={{ imageRendering: "pixelated" }} />
+
+        {toast && phase === "playing" && (
+          <div className="pointer-events-none absolute inset-x-0 top-[30%] px-3 text-center" aria-hidden>
+            <span className="pixel pop-in inline-block rounded-xl border-2 px-4 py-2 text-sm sm:text-lg" style={{ background: p.ink, color: p.primary, borderColor: p.primary }}>
+              {toast}
             </span>
-            {hud.level !== undefined && (
-              <span className="pixel hidden sm:inline" style={{ color: p.accent }}>
-                LV {hud.level}
-              </span>
-            )}
-            {hud.lives !== undefined ? (
-              <span className="pixel" aria-label={`${hud.lives} lives`}>
-                {"♥".repeat(Math.max(0, Math.min(hud.lives, 9)))}
-              </span>
-            ) : (
-              <span className="pixel truncate text-xs opacity-80">{hud.label}</span>
-            )}
           </div>
-          <div
-            ref={wrapRef}
-            tabIndex={0}
-            role="application"
-            aria-label={`${title}. ${meta.controls} P to pause, M to mute.`}
-            className="crt relative mx-auto touch-none select-none overflow-hidden rounded-[14px] outline-none"
-            style={{ cursor: phase === "playing" && meta.input.pointer ? "crosshair" : "default", background: p.bg, aspectRatio: `${meta.field.w} / ${meta.field.h}`, maxHeight: portrait ? "72vh" : undefined }}
-          >
-            <canvas ref={canvasRef} className="block h-full w-full" style={{ imageRendering: "pixelated" }} />
+        )}
 
-            {toast && phase === "playing" && (
-              <div className="pointer-events-none absolute inset-x-0 top-[36%] px-3 text-center" aria-hidden>
-                <span className="pixel pop-in inline-block rounded-xl border-2 px-4 py-2 text-sm sm:text-lg" style={{ background: p.ink, color: p.primary, borderColor: p.primary }}>
-                  {toast}
-                </span>
-              </div>
-            )}
-
-            {(phase === "loading" || phase === "title" || phase === "starting") && (
-              <div className="absolute inset-0 grid place-items-center overflow-y-auto p-4 text-center" style={{ background: `${p.bg}d9`, color: p.text }}>
-                <div className="pop-in grid justify-items-center">
-                  <Mascot theme={theme} size={portrait ? 96 : 104} className="floaty" />
-                  <p className="pixel mt-3 text-xs sm:text-sm" style={{ color: p.primary }}>
-                    ${theme.coin.ticker} PRESENTS
-                  </p>
-                  <h2 className="mt-1 text-3xl font-extrabold tracking-tight sm:text-5xl">{title}</h2>
-                  <p className="mt-2 max-w-md text-sm opacity-85 sm:text-base">{meta.tagline}</p>
-                  <button className="btn mt-5 text-lg" style={{ background: p.primary }} onClick={start} disabled={phase !== "title"} autoFocus>
-                    {phase === "title" ? "▶ Insert coin" : "Loading…"}
-                  </button>
-                  <p className="mt-3 text-xs opacity-70">{meta.controls}</p>
-                  {!practice && <p className="mt-1 text-xs opacity-60">{wallet.address ? "Signed in: this run goes on the leaderboard." : "Playing as guest. Connect a wallet to rank."}</p>}
-                </div>
-              </div>
-            )}
-
-            {phase === "paused" && (
-              <div className="absolute inset-0 grid place-items-center" style={{ background: `${p.bg}cc`, color: p.text }}>
-                <div className="grid justify-items-center gap-4">
-                  <p className="pixel text-2xl">PAUSED</p>
-                  <button className="btn" style={{ background: p.primary }} onClick={resume} autoFocus>
-                    Resume
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {phase === "over" && result && (
-              <div className="absolute inset-0 grid place-items-center overflow-y-auto p-4 text-center" style={{ background: `${p.bg}e6`, color: p.text }}>
-                <div className="pop-in grid justify-items-center">
-                  <Mascot theme={theme} mood={result.status === "won" ? "happy" : "sad"} size={76} />
-                  <p className="pixel mt-2 text-sm" style={{ color: p.accent }}>
-                    {result.status === "won" ? "ALL CLEAR" : "GAME OVER"}
-                  </p>
-                  <p className="text-5xl font-extrabold tabular-nums sm:text-7xl">{result.score.toLocaleString("en-US")}</p>
-                  <p className="mt-1 opacity-80">{result.status === "won" ? theme.copy.won : pick(theme.copy.gameOver)}</p>
-                  <button className="btn mt-5" style={{ background: p.primary }} onClick={start} autoFocus>
-                    ↻ Play again
-                  </button>
-                </div>
-              </div>
-            )}
+        {(phase === "loading" || phase === "title" || phase === "starting") && (
+          <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-3 text-center" style={{ background: overlayBg }}>
+            <div className="pop-in flex max-h-full max-w-xl flex-col items-center" style={{ gap: compact ? 6 : 10 }}>
+              <Mascot theme={theme} size={mascotPx} className="floaty" />
+              {!tiny && (
+                <p className="pixel text-xs" style={{ color: p.primary }}>
+                  ${theme.coin.ticker} PRESENTS
+                </p>
+              )}
+              <h2 className="font-extrabold leading-none tracking-tight" style={{ fontSize: titlePx }}>
+                {title}
+              </h2>
+              {!compact && <p className="max-w-md text-sm opacity-85 sm:text-base">{meta.tagline}</p>}
+              <button className="btn text-lg" style={{ background: p.primary }} onClick={start} disabled={phase !== "title"} autoFocus>
+                {phase === "title" ? "▶ Insert coin" : "Loading…"}
+              </button>
+              {!tiny && <p className="max-w-md text-xs opacity-70">{meta.controls}</p>}
+              {meta.field.w > meta.field.h * 1.4 && box.h > box.w * 1.2 && (
+                <p className="pixel text-[0.65rem]" style={{ color: p.primary }}>
+                  ↻ TURN YOUR PHONE SIDEWAYS FOR A BIGGER VIEW
+                </p>
+              )}
+              {!compact && !practice && (
+                <p className="text-xs opacity-60">{wallet.address ? "Signed in: this run goes on the leaderboard." : "Playing as guest. Connect a wallet to rank."}</p>
+              )}
+              {!compact && skinLinks.length > 0 && (
+                <p className="flex flex-wrap justify-center gap-2 text-xs">
+                  {skinLinks.map((l) => (
+                    <Link key={l.href} href={l.href} className="chip !text-[0.6rem]">
+                      {l.label}
+                    </Link>
+                  ))}
+                </p>
+              )}
+            </div>
           </div>
-          <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 px-2 text-xs" style={{ color: `${BEZEL_TEXT}b3` }}>
-            <span className="pixel truncate">{meta.controls.toUpperCase()}</span>
-            <button className="pixel rounded-full border px-2 py-0.5" style={{ borderColor: `${BEZEL_TEXT}55`, color: BEZEL_TEXT }} onClick={toggleMute} aria-pressed={muted}>
-              {muted ? "SOUND OFF" : "SOUND ON"}
-            </button>
-          </div>
-        </div>
+        )}
 
-        <div aria-live="polite" className="sr-only">
-          {phase === "over" && result ? `Game over. Score ${result.score}. ${result.scoreId ? "Score verified." : ""}` : ""}
-        </div>
+        {phase === "paused" && (
+          <div className="absolute inset-0 flex items-center justify-center overflow-hidden" style={{ background: `${p.bg}cc` }}>
+            <div className="flex flex-col items-center gap-4">
+              <p className="pixel text-2xl">PAUSED</p>
+              <button className="btn" style={{ background: p.primary }} onClick={resume} autoFocus>
+                Resume
+              </button>
+            </div>
+          </div>
+        )}
 
         {phase === "over" && result && (
-          <section className="slab pop-in mt-6 p-5 sm:p-6" aria-label="Your run">
-            {!result.scoreId && !result.error && !result.offline && <p className="font-semibold">Verifying your run on the server…</p>}
-            {result.offline && <p className="font-semibold">{practice ? "Preview run. Scores and leaderboards switch on when this skin goes live." : "Practice run (offline). Scores are saved when the server can be reached."}</p>}
-            {result.error && (
-              <p role="alert" className="font-semibold text-hot">
-                {result.error}
+          <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-3 text-center" style={{ background: overlayBg }}>
+            <div className="pop-in flex max-h-full max-w-xl flex-col items-center" style={{ gap: compact ? 4 : 8 }}>
+              {!tiny && <Mascot theme={theme} mood={result.status === "won" ? "happy" : "sad"} size={Math.round(mascotPx * 0.8)} />}
+              <p className="pixel text-xs sm:text-sm" style={{ color: p.accent }}>
+                {result.status === "won" ? "ALL CLEAR" : "GAME OVER"}
               </p>
-            )}
-            {result.scoreId && (
-              <div className="grid gap-5 md:grid-cols-[1.4fr_1fr] md:items-center">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/api/card/${result.scoreId}`} width={1200} height={630} alt={`Score card: ${result.score} points`} className="h-auto w-full rounded-2xl border-2 border-line" />
-                <div>
-                  <p className="chip">✓ Verified by server replay</p>
-                  <p className="mt-3 text-lg font-bold">
-                    {result.ranked ? (result.rank ? `Rank #${result.rank} on the $${theme.coin.ticker} ${meta.name} board` : "On the board") : "Guest run: not on the leaderboard"}
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-2">
+              <p className="font-extrabold leading-none tabular-nums" style={{ fontSize: scorePx }}>
+                {result.score.toLocaleString("en-US")}
+              </p>
+              {!compact && <p className="opacity-80">{result.status === "won" ? theme.copy.won : pick(theme.copy.gameOver)}</p>}
+              <p className="text-xs font-semibold sm:text-sm" role="status">
+                {statusLine}
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <button className="btn" style={{ background: p.primary }} onClick={start} autoFocus>
+                  ↻ Play again
+                </button>
+                {result.scoreId && (
+                  <>
                     <a className="btn btn-sm btn-sun" href={`https://x.com/intent/post?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer">
                       Post on X
                     </a>
@@ -502,45 +581,33 @@ export function GameHost({ meta, theme, title, practice = false }: { meta: GameM
                     >
                       {copied ? "Copied!" : "Copy link"}
                     </button>
-                    <a className="btn btn-sm btn-plain" href={`/api/card/${result.scoreId}?download=1`}>
-                      Download card
-                    </a>
-                  </div>
-                  {!result.ranked && (
-                    <div className="mt-4">
-                      <p className="mb-2 text-sm text-soft">Sign in with a wallet to put your next run on the leaderboard.</p>
-                      <WalletButton compact />
-                    </div>
-                  )}
-                </div>
+                    {!tiny && (
+                      <a className="btn btn-sm btn-plain" href={`/s/${result.scoreId}`} target="_blank" rel="noopener noreferrer">
+                        Score card
+                      </a>
+                    )}
+                  </>
+                )}
               </div>
-            )}
-          </section>
+              {!practice && !compact && result.scoreId && !result.ranked && (
+                <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
+                  <span className="opacity-80">Sign in to rank your next run:</span>
+                  <WalletButton compact />
+                </div>
+              )}
+              {!practice && !tiny && (
+                <Link href={`/leaderboard?game=${meta.id}&coin=${theme.id}`} className="text-xs underline opacity-80">
+                  ${theme.coin.ticker} {meta.name} leaderboard
+                </Link>
+              )}
+            </div>
+          </div>
         )}
       </div>
 
-      {!practice && <aside className="grid content-start gap-4">
-        <div className="slab grid justify-items-center p-4 text-center" style={{ background: p.bg2, color: p.text }}>
-          <Mascot theme={theme} mood={mood} size={120} label={`${theme.mascot.name} looks ${mood === "idle" ? "ready" : mood}`} />
-          <p className="pixel mt-2 text-sm" style={{ color: p.primary }}>
-            {theme.mascot.name.toUpperCase()}
-          </p>
-          <p className="text-sm opacity-80">{hud.label || "Ready"}</p>
-        </div>
-        <div className="slab p-4">
-          <p className="font-bold">Ranked runs</p>
-          <p className="mt-1 text-sm text-soft">Sign a message with your wallet (no transaction) and your verified scores go on the board.</p>
-          <div className="mt-3">
-            <WalletButton compact />
-          </div>
-        </div>
-        <Link href={`/leaderboard?game=${meta.id}&coin=${theme.id}`} className="btn btn-plain">
-          ${theme.coin.ticker} {meta.name} board →
-        </Link>
-        <p className="px-1 text-xs text-soft">
-          {meta.credits.basedOn === "Original" ? "An ArcadePad original." : `Based on ${meta.credits.basedOn} (${meta.credits.licence}).`} {theme.coin.fictional ? `$${theme.coin.ticker} is a fictional demo coin. ` : ""}Scores are bragging rights only: no prizes, no token rewards.
-        </p>
-      </aside>}
+      <div aria-live="polite" className="sr-only">
+        {phase === "over" && result ? `Game over. Score ${result.score}. ${result.scoreId ? "Score verified." : ""}` : ""}
+      </div>
     </div>
   );
 }

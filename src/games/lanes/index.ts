@@ -68,7 +68,7 @@ const MAGNET_REACH = 7;
 
 // ---------------------------------------------------------------- track
 const SAFE_START = 40;
-const SPAWN_AHEAD = 110;
+const SPAWN_AHEAD = 160; // must stay beyond the renderer's draw distance (FAR = 150)
 const MILESTONE = 1000;
 const MAX_FRAMES = 15 * 60 * 60;
 

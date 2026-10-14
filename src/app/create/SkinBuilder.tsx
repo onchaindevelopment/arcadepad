@@ -207,7 +207,9 @@ export function SkinBuilder({ games }: { games: GameMeta[] }) {
             </button>
           ))}
         </nav>
-        <GameHost key={`${meta.id}-${themeKey}`} meta={meta} theme={theme} title={`${theme.coin.name} ${meta.name}`} practice />
+        <div className="slab h-[min(72dvh,640px)] min-h-[380px] overflow-hidden !p-0">
+          <GameHost key={`${meta.id}-${themeKey}`} meta={meta} theme={theme} title={`${theme.coin.name} ${meta.name}`} practice />
+        </div>
 
         <form onSubmit={submit} className="slab grid gap-4 p-5 sm:p-6">
           <h2 className="text-xl font-extrabold">4. Put it live</h2>

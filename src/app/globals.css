@@ -221,3 +221,22 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Full-screen game pages: no page chrome, no scrolling, no pull-to-refresh. */
+html:has(.play-fixed),
+body:has(.play-fixed) {
+  overflow: hidden;
+  overscroll-behavior: none;
+  height: 100%;
+}
+body:has(.play-fixed) > header,
+body:has(.play-fixed) > footer {
+  display: none;
+}
+.play-fixed {
+  height: 100dvh;
+}
+.game-stage:fullscreen {
+  width: 100vw;
+  height: 100vh;
+}
