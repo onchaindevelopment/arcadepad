@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogoBadge } from "./Logo";
@@ -20,7 +20,6 @@ function isActive(path: string, href: string) {
 const DOTS = "after:absolute after:bottom-[5px] after:left-1/2 after:h-[3px] after:w-[3px] after:-translate-x-1/2 after:rounded-full after:bg-current after:shadow-[-5px_0_0_currentColor,5px_0_0_currentColor] after:content-['']";
 
 export function SiteHeader() {
-  const path = usePathname();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -45,19 +44,9 @@ export function SiteHeader() {
           <LogoBadge />
         </Link>
         <nav aria-label="Main" className="hidden h-12 max-w-[440px] flex-1 items-center justify-between rounded-full bg-white px-2 shadow-[var(--soft-shadow)] md:flex">
-          {NAV.map((n) => {
-            const active = isActive(path, n.href);
-            return (
-              <Link
-                key={n.href}
-                href={n.href}
-                aria-current={active ? "page" : undefined}
-                className={`relative rounded-full px-3.5 py-2 text-[0.92rem] font-medium tracking-[-0.01em] text-[#2e2e2e] transition-opacity ${active ? `opacity-100 ${DOTS}` : "opacity-50 hover:opacity-75"}`}
-              >
-                {n.label}
-              </Link>
-            );
-          })}
+          <Suspense fallback={<DeskLinks path="" />}>
+            <WithPath render={(p) => <DeskLinks path={p} />} />
+          </Suspense>
         </nav>
         <div className="hidden h-12 md:block">
           <WalletButton compact />
@@ -88,20 +77,9 @@ export function SiteHeader() {
         <>
           <div id="mobile-menu" className="menu-in absolute inset-x-4 top-[calc(100%+10px)] mx-auto max-w-sm rounded-[28px] bg-white px-4 pb-5 pt-5 shadow-[0_20px_60px_rgba(0,0,0,0.45)] md:hidden">
             <nav aria-label="Main (mobile)" className="grid gap-1">
-              {NAV.map((n) => {
-                const active = isActive(path, n.href);
-                return (
-                  <Link
-                    key={n.href}
-                    href={n.href}
-                    onClick={() => setOpen(false)}
-                    aria-current={active ? "page" : undefined}
-                    className={`relative rounded-2xl px-4 py-3.5 text-center text-lg font-medium text-[#2e2e2e] ${active ? `opacity-100 ${DOTS.replace("bottom-[5px]", "bottom-[8px]")}` : "opacity-55"}`}
-                  >
-                    {n.label}
-                  </Link>
-                );
-              })}
+              <Suspense fallback={<MobileLinks path="" close={() => setOpen(false)} />}>
+                <WithPath render={(p) => <MobileLinks path={p} close={() => setOpen(false)} />} />
+              </Suspense>
             </nav>
             <div className="mt-3 grid [&_button]:w-full [&_button]:!py-3.5">
               <WalletButton compact />
@@ -110,5 +88,50 @@ export function SiteHeader() {
         </>
       )}
     </header>
+  );
+}
+
+function WithPath({ render }: { render: (path: string) => React.ReactNode }) {
+  return <>{render(usePathname())}</>;
+}
+
+function DeskLinks({ path }: { path: string }) {
+  return (
+    <>
+      {NAV.map((n) => {
+        const active = isActive(path, n.href);
+        return (
+          <Link
+            key={n.href}
+            href={n.href}
+            aria-current={active ? "page" : undefined}
+            className={`relative rounded-full px-3.5 py-2 text-[0.92rem] font-medium tracking-[-0.01em] text-[#2e2e2e] transition-opacity ${active ? `opacity-100 ${DOTS}` : "opacity-50 hover:opacity-75"}`}
+          >
+            {n.label}
+          </Link>
+        );
+      })}
+    </>
+  );
+}
+
+function MobileLinks({ path, close }: { path: string; close: () => void }) {
+  return (
+    <>
+      {NAV.map((n) => {
+        const active = isActive(path, n.href);
+        return (
+          <Link
+            key={n.href}
+            href={n.href}
+            onClick={close}
+            aria-current={active ? "page" : undefined}
+            className={`relative rounded-2xl px-4 py-3.5 text-center text-lg font-medium text-[#2e2e2e] ${active ? `opacity-100 ${DOTS.replace("bottom-[5px]", "bottom-[8px]")}` : "opacity-55"}`}
+          >
+            {n.label}
+          </Link>
+        );
+      })}
+    </>
   );
 }
