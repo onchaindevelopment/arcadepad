@@ -108,6 +108,21 @@ export function sequence(song: Song): Step[] {
 
 export const SONGS: Song[] = [
   {
+    // Site title screen: bright, bouncy, loops cleanly.
+    id: "title-screen",
+    name: "Title Screen",
+    bpm: 132,
+    bass: "bounce",
+    arp: "updown8",
+    drums: "four",
+    order: "AABC",
+    sections: {
+      A: { chords: ["C", "Am", "F", "G"], lead: "C5 . E5 . G5 . C6 - B5 . G5 . E5 - - . A4 . C5 . F5 . A5 - G5 . F5 . D5 - - ." },
+      B: { chords: ["C", "Am", "F", "G"], lead: "E5 . G5 . C6 . E6 - D6 . C6 . A5 - - . F5 . A5 . C6 . A5 - B5 . D6 . G5 - - ." },
+      C: { chords: ["F", "G", "Em", "Am"], lead: "A5 - C6 . A5 . G5 - B5 - G5 . F5 . E5 - G5 - E5 . D5 . C5 - E5 . G5 . C6 - - - " },
+    },
+  },
+  {
     id: "insert-coin",
     name: "Insert Coin",
     bpm: 140,

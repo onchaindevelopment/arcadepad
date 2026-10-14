@@ -298,6 +298,7 @@ export function GameHost({
     if (!s.def) return;
     if (!practice && window.matchMedia("(pointer: coarse)").matches) enterFullscreen();
     s.synth?.unlock();
+    window.dispatchEvent(new Event("ap:game"));
     setResult(null);
     setPhaseBoth("starting");
     let seed: number;

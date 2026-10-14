@@ -83,7 +83,7 @@ export function WalletButton({ compact = false }: { compact?: boolean }) {
 
   return (
     <div className="relative" ref={ref}>
-      <button className={compact ? "btn btn-plain h-full !px-5" : "btn"} aria-expanded={open} aria-haspopup="dialog" onClick={() => {
+      <button className={compact ? "btn btn-sm" : "btn"} aria-expanded={open} aria-haspopup="dialog" onClick={() => {
           if (!open) setOptions(availableWallets());
           setOpen(!open);
         }}>

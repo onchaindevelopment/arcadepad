@@ -26,20 +26,23 @@ export function LogoMark({ size = 32 }: { size?: number }) {
   );
 }
 
-export function Logo() {
+export function Logo({ size = "md" }: { size?: "md" | "lg" }) {
   return (
     <span className="inline-flex items-center gap-2.5">
-      <LogoMark size={26} />
-      <span className="display text-[1.35rem] leading-none tracking-[-0.02em]">ArcadePad</span>
+      <LogoMark size={size === "lg" ? 34 : 28} />
+      <span className={`sign chrome leading-none ${size === "lg" ? "text-[1.6rem]" : "text-[1.25rem]"}`}>ArcadePad</span>
     </span>
   );
 }
 
-/** Round white badge with the coin mark, used in the header. */
+/** Lit coin badge for the header. */
 export function LogoBadge({ size = 46 }: { size?: number }) {
   return (
-    <span className="grid place-items-center rounded-full bg-white shadow-[var(--soft-shadow)] transition-transform duration-300 hover:scale-[1.04]" style={{ width: size, height: size }}>
-      <LogoMark size={Math.round(size * 0.62)} />
+    <span
+      className="grid place-items-center rounded-full transition-transform duration-300 hover:rotate-[-8deg] hover:scale-[1.06]"
+      style={{ width: size, height: size, background: "radial-gradient(circle at 35% 30%, #3a1a72, #12062a)", boxShadow: "0 0 0 2px #ffd23d, 0 0 0 5px rgba(255,210,61,0.18), 0 0 22px rgba(255,210,61,0.45)" }}
+    >
+      <LogoMark size={Math.round(size * 0.66)} />
     </span>
   );
 }

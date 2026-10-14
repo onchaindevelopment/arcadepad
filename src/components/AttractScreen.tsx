@@ -71,7 +71,7 @@ export function AttractScreen({ games }: { games: Pick<GameMeta, "id" | "name" |
   return (
     <div ref={boxRef} className="relative">
       <div className="pointer-events-none absolute -inset-10 opacity-50 blur-3xl transition-colors duration-700" style={{ background: `radial-gradient(closest-side, ${p.primary}66, transparent)` }} aria-hidden />
-      <div className="relative rounded-[28px] border border-white/10 bg-[#0c0c0d] p-3 shadow-[0_40px_80px_-30px_rgba(0,0,0,0.9)]">
+      <div className="relative rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,#2a1156,#12062a)] p-3 shadow-[0_0_0_2px_rgba(255,210,61,0.5),0_40px_80px_-30px_rgba(0,0,0,0.9)]">
         <div className="flex items-center justify-between gap-3 px-2 pb-3 pt-1">
           <span className="flex min-w-0 items-center gap-2 text-sm font-medium">
             <span className="h-2 w-2 shrink-0 animate-pulse rounded-full" style={{ background: p.primary, boxShadow: `0 0 10px ${p.primary}` }} aria-hidden />

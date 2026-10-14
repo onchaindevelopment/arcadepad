@@ -1,78 +1,107 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { THEMES } from "@/themes";
 import { CATEGORIES, type Category } from "@/games/categories";
+import { siteSound } from "@/lib/site-sound";
 import { GameThumb } from "./GameThumb";
 import { MascotStatic } from "./Mascot";
 
 export type GridGame = { id: string; name: string; tagline: string; session: string; category: Category };
 
-// Dark skins read best as a wall of screens; the light skin is one tap away on each card.
+// Dark skins read best on the shelf; the light skin is one tap away on each cartridge.
 const GRID_THEMES = THEMES.filter((t) => t.id !== "nubbin");
+
+// Cartridge shell colours: soft retro plastics.
+const SHELLS = ["#6f5aa8", "#4f8a8b", "#a0587a", "#6a7a3c", "#4d6aa8", "#a8703c", "#7a4fa0", "#3f8a64"];
 
 export function GameGrid({ games }: { games: GridGame[] }) {
   const [cat, setCat] = useState<Category | "All">("All");
+  const listRef = useRef<HTMLUListElement>(null);
   const counts = useMemo(() => Object.fromEntries(CATEGORIES.map((c) => [c, games.filter((g) => g.category === c).length])), [games]);
   const shown = cat === "All" ? games : games.filter((g) => g.category === cat);
+
+  // Arrow keys move between cartridges like a game's select screen.
+  const onKey = (e: React.KeyboardEvent) => {
+    if (!["ArrowRight", "ArrowLeft", "ArrowDown", "ArrowUp"].includes(e.key)) return;
+    const links = [...(listRef.current?.querySelectorAll<HTMLAnchorElement>("a[data-cart]") ?? [])];
+    const i = links.indexOf(document.activeElement as HTMLAnchorElement);
+    if (i < 0) return;
+    const cols = getComputedStyle(listRef.current!).gridTemplateColumns.split(" ").length;
+    const step = e.key === "ArrowDown" ? cols : e.key === "ArrowUp" ? -cols : e.key === "ArrowRight" ? 1 : -1;
+    const next = links[i + step];
+    if (next) {
+      e.preventDefault();
+      next.focus();
+    }
+  };
 
   return (
     <>
       <div role="toolbar" aria-label="Filter games" className="mt-10 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
         {(["All", ...CATEGORIES] as const).map((c) => (
-          <button key={c} type="button" className="chip shrink-0 !text-[0.68rem]" aria-pressed={cat === c} onClick={() => setCat(c)}>
+          <button key={c} type="button" className="chip shrink-0 font-[family-name:var(--font-ui)] !text-[0.95rem]" aria-pressed={cat === c} onClick={() => setCat(c)}>
             {c}
             <span className="opacity-60">{c === "All" ? games.length : counts[c]}</span>
           </button>
         ))}
       </div>
-      <ul className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+      <ul ref={listRef} onKeyDown={onKey} className="mt-7 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
         {shown.map((g) => {
           const idx = games.indexOf(g);
           const t = GRID_THEMES[idx % GRID_THEMES.length];
+          const shell = SHELLS[idx % SHELLS.length];
           return (
             <li key={g.id} className="min-w-0">
-              <article
-                className="group relative flex h-full flex-col overflow-hidden rounded-[20px] border border-hairline bg-surface p-1.5 transition-[transform,border-color,box-shadow] duration-300 [transition-timing-function:var(--ease)] hover:-translate-y-1 hover:border-white/30 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12),0_20px_50px_-20px_rgba(255,255,255,0.25)]"
-              >
-                <Link href={`/play/${g.id}/${t.id}`} className="crt relative block aspect-[4/3] overflow-hidden rounded-[14px]" tabIndex={-1} aria-hidden>
-                  <div className="h-full w-full transition-transform duration-500 group-hover:scale-[1.04]">
+              <article className="cart group relative flex h-full flex-col" style={{ ["--shell" as string]: shell }}>
+                {/* Top edge: number + grip ridges */}
+                <div className="flex items-center justify-between px-3 pb-1.5 pt-2">
+                  <span className="pixel text-[0.62rem] text-white/70">{String(idx + 1).padStart(2, "0")}</span>
+                  <span className="cart-ridges h-1.5 w-14 opacity-60" aria-hidden />
+                </div>
+                {/* Label: the game's screen */}
+                <Link
+                  href={`/play/${g.id}/${t.id}`}
+                  data-cart
+                  onFocus={() => siteSound.blip("paddle")}
+                  aria-label={`Play ${g.name}`}
+                  className="cart-label crt relative mx-2 block aspect-[4/3] overflow-hidden rounded-md outline-offset-4"
+                >
+                  <div className="h-full w-full transition-transform duration-500 group-hover:scale-[1.05]">
                     <GameThumb gameId={g.id} theme={t} label={`${g.name} preview`} />
                   </div>
-                                    <span
-                    className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 scale-90 rounded-full bg-white px-4 py-2 text-xs font-semibold text-black opacity-0 shadow-[var(--glow)] transition-all duration-300 group-hover:scale-100 group-hover:opacity-100"
-                  >
-                    Play ▶
+                  <span className="pixel pointer-events-none absolute inset-x-0 bottom-0 bg-black/55 py-1 text-center text-[0.58rem] uppercase tracking-[0.18em] text-white opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+                    press start
                   </span>
                 </Link>
-                <div className="flex flex-1 flex-col px-2.5 pb-2.5 pt-3 sm:px-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="pixel truncate text-[0.62rem] uppercase tracking-[0.12em] text-dim">
-                      {g.category}
-                    </span>
-                    <span className="hidden shrink-0 text-[0.66rem] text-dim sm:inline">{g.session}</span>
+                {/* Name + play button */}
+                <div className="flex items-start justify-between gap-2 px-3 pb-2 pt-2.5">
+                  <div className="min-w-0">
+                    <h3 className="truncate font-[family-name:var(--font-ui)] text-[1.02rem] font-semibold leading-tight text-white sm:text-[1.12rem]">{g.name}</h3>
+                    <p className="pixel mt-0.5 truncate text-[0.56rem] uppercase tracking-[0.12em] text-white/60">
+                      {g.category} · {g.session}
+                    </p>
                   </div>
-                  <h3 className="mt-1.5 text-[0.95rem] leading-tight sm:text-[1.05rem]">
-                    <Link href={`/play/${g.id}/${t.id}`} className="after:absolute after:inset-0 after:content-['']">
-                      {g.name}
-                    </Link>
-                  </h3>
-                  <p className="mt-1 hidden text-[0.8rem] leading-snug text-dim sm:line-clamp-2">{g.tagline}</p>
-                  <div className="relative z-10 mt-auto flex items-center gap-1.5 pt-3" aria-label="Play in another skin">
-                    {THEMES.map((o) => (
-                      <Link
-                        key={o.id}
-                        href={`/play/${g.id}/${o.id}`}
-                        title={`${g.name} as $${o.coin.ticker}`}
-                        className="grid h-7 w-7 place-items-center rounded-full border border-hairline transition-transform hover:scale-110"
-                        style={{ background: o.palette.bg2 }}
-                      >
-                        <MascotStatic theme={o} size={18} />
-                        <span className="sr-only">{`Play ${g.name} as $${o.coin.ticker}`}</span>
-                      </Link>
-                    ))}
-                  </div>
+                  <Link href={`/play/${g.id}/${t.id}`} tabIndex={-1} aria-hidden className="cart-play grid h-8 w-8 shrink-0 place-items-center text-[0.7rem]">
+                    ▶
+                  </Link>
                 </div>
+                {/* Other skins */}
+                <div className="relative z-10 flex items-center gap-1.5 px-3 pb-2" aria-label="Play in another skin">
+                  {THEMES.map((o) => (
+                    <Link
+                      key={o.id}
+                      href={`/play/${g.id}/${o.id}`}
+                      title={`${g.name} as $${o.coin.ticker}`}
+                      className="grid h-6 w-6 place-items-center rounded-md border border-black/30 transition-transform hover:scale-110"
+                      style={{ background: o.palette.bg2 }}
+                    >
+                      <MascotStatic theme={o} size={16} />
+                      <span className="sr-only">{`Play ${g.name} as $${o.coin.ticker}`}</span>
+                    </Link>
+                  ))}
+                </div>
+                <div className="cart-grip mx-6 mb-1.5 mt-auto h-2" aria-hidden />
               </article>
             </li>
           );
