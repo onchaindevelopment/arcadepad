@@ -3,16 +3,16 @@ import { GAMES, gameMeta } from "@/games/registry";
 import { SkinBuilder } from "./SkinBuilder";
 
 export const metadata: Metadata = {
-  title: "Make your coin's arcade",
+  title: "Launch your arcade",
   description: "Upload your mascot, pick your colours and sounds, and play every ArcadePad game in your coin's skin, live in your browser.",
 };
 
 export default function CreatePage() {
   return (
     <div className="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
-      <span className="chip">Self-serve</span>
+      <p className="kicker">Launchpad</p>
       <h1 className="mt-4 text-[clamp(2.4rem,6vw,4.4rem)] font-semibold leading-[0.98] tracking-[-0.04em]">
-        Skin the whole arcade
+        Launch your arcade
         <br />
         <span className="neon-text">in two minutes.</span>
       </h1>

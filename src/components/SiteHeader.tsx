@@ -9,7 +9,7 @@ import { SoundButton } from "./SiteAudio";
 const NAV = [
   { href: "/", label: "Arcade" },
   { href: "/leaderboard", label: "Leaderboard" },
-  { href: "/create", label: "Make a skin" },
+  { href: "/create", label: "Launch" },
   { href: "/order", label: "Order" },
 ];
 

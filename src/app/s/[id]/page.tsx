@@ -46,7 +46,7 @@ async function Share({ params }: { params: PageProps<"/s/[id]">["params"] }) {
   const { s, theme, game, title } = d;
   return (
     <div className="mx-auto max-w-4xl px-4 pt-12 sm:px-6">
-      <span className="chip">Replay-verified score</span>
+      <p className="kicker">Replay-verified score</p>
       <h1 className="mt-4 text-[clamp(2rem,5vw,3.4rem)] font-semibold leading-none tracking-[-0.04em]">
         {shortAddress(s.wallet)} scored {s.score.toLocaleString("en-US")}
       </h1>

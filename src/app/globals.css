@@ -14,8 +14,8 @@
   --hairline: rgba(255, 255, 255, 0.12);
   --hairline-2: rgba(255, 255, 255, 0.24);
   --text: #fff6e6;
-  --text-soft: #dccbff;
-  --text-dim: #a08ccf;
+  --text-soft: #efe6ff;
+  --text-dim: #bfaee6;
   --hot: #ff2e88;
   --orange: #ff7a1a;
   --sun: #ffd23d;
@@ -73,6 +73,7 @@
 html {
   scroll-behavior: smooth;
   background: var(--bg);
+  overflow-x: clip;
 }
 body {
   overflow-x: clip;
@@ -127,8 +128,8 @@ h2 {
   line-height: 1.02;
   color: var(--text);
   text-shadow:
-    3px 3px 0 var(--hot),
-    6px 6px 0 #5b1bb0;
+    2px 2px 0 var(--hot),
+    4px 4px 0 #3b0f7a;
 }
 h3 {
   font-weight: 700;
@@ -279,8 +280,8 @@ h3 {
     align-items: center;
     gap: 0.6rem;
     font-family: var(--font-pixel);
-    font-size: 0.78rem;
-    letter-spacing: 0.16em;
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--sky);
   }
@@ -752,4 +753,42 @@ textarea,
 [class*="--font-ui"] {
   font-weight: 400 !important;
   font-synthesis: none;
+}
+
+/* Insert-coin intro */
+html[data-coin] .coin-intro {
+  display: none;
+}
+html:not([data-coin]) body:has(.coin-intro) {
+  overflow: hidden;
+}
+.coin-intro {
+  cursor: pointer;
+}
+.coin-drop.is-dropping {
+  animation: coin-drop 0.45s cubic-bezier(0.5, 0, 0.9, 0.5) forwards;
+}
+@keyframes coin-drop {
+  0% { transform: translateY(0) rotateY(0); }
+  60% { transform: translateY(70px) rotateY(540deg) scaleX(0.4); }
+  100% { transform: translateY(96px) rotateY(720deg) scaleX(0.1); opacity: 0; }
+}
+.coin-out {
+  animation: coin-out 0.4s var(--ease) forwards;
+}
+@keyframes coin-out {
+  to { opacity: 0; transform: scale(1.06); visibility: hidden; }
+}
+
+/* Faint CRT scanlines over the whole site */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.06) 0 1px, transparent 1px 3px);
+}
+body:has(.play-fixed)::after {
+  display: none;
 }

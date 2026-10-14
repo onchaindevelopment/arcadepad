@@ -18,7 +18,7 @@ function get(): Synth {
   if (!synth) {
     const t = THEMES[0];
     synth = new Synth(t.sfx, t.music);
-    synth.setSong(getSong("title-screen") ?? null);
+    synth.setSong(getSong("versus") ?? null);
     try {
       on = localStorage.getItem(KEY) !== "off";
     } catch {}

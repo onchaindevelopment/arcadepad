@@ -19,7 +19,7 @@ export default function OrderPage() {
     <div className="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
       <div className="grid items-end gap-8 md:grid-cols-[1.4fr_1fr]">
         <div>
-          <span className="chip">Order a game</span>
+          <p className="kicker">Order a game</p>
           <h1 className="mt-4 text-[clamp(2.4rem,6vw,4.6rem)] font-semibold leading-[0.98] tracking-[-0.04em]">
             Give your coin
             <br />

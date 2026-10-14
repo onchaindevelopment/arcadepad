@@ -30,7 +30,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${bungee.variable} ${tiny5.variable} ${doto.variable} ${geist.variable} ${geistMono.variable} ${silk.variable} h-full antialiased`}>
+    <html lang="en" suppressHydrationWarning className={`${bungee.variable} ${tiny5.variable} ${doto.variable} ${geist.variable} ${geistMono.variable} ${silk.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 btn btn-sun">
           Skip to content

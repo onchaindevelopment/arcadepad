@@ -56,7 +56,7 @@ export function GameGrid({ games }: { games: GridGame[] }) {
               <article className="cart group relative flex h-full flex-col" style={{ ["--shell" as string]: shell }}>
                 {/* Top edge: number + grip ridges */}
                 <div className="flex items-center justify-between px-3 pb-1.5 pt-2">
-                  <span className="pixel text-[0.62rem] text-white/70">{String(idx + 1).padStart(2, "0")}</span>
+                  <span className="pixel text-[0.72rem] text-white/70">{String(idx + 1).padStart(2, "0")}</span>
                   <span className="cart-ridges h-1.5 w-14 opacity-60" aria-hidden />
                 </div>
                 {/* Label: the game's screen */}
@@ -70,7 +70,7 @@ export function GameGrid({ games }: { games: GridGame[] }) {
                   <div className="h-full w-full transition-transform duration-500 group-hover:scale-[1.05]">
                     <GameThumb gameId={g.id} theme={t} label={`${g.name} preview`} />
                   </div>
-                  <span className="pixel pointer-events-none absolute inset-x-0 bottom-0 bg-black/55 py-1 text-center text-[0.58rem] uppercase tracking-[0.18em] text-white opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+                  <span className="pixel pointer-events-none absolute inset-x-0 bottom-0 bg-black/55 py-1 text-center text-[0.72rem] uppercase tracking-[0.18em] text-white opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
                     press start
                   </span>
                 </Link>
@@ -78,7 +78,7 @@ export function GameGrid({ games }: { games: GridGame[] }) {
                 <div className="flex items-start justify-between gap-2 px-3 pb-2 pt-2.5">
                   <div className="min-w-0">
                     <h3 className="truncate font-[family-name:var(--font-ui)] text-[1.02rem] font-semibold leading-tight text-white sm:text-[1.12rem]">{g.name}</h3>
-                    <p className="pixel mt-0.5 truncate text-[0.56rem] uppercase tracking-[0.12em] text-white/60">
+                    <p className="mt-0.5 truncate text-[0.76rem] font-medium text-white/75">
                       {g.category} · {g.session}
                     </p>
                   </div>

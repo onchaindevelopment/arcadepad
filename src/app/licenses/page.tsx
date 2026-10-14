@@ -26,7 +26,7 @@ const ROWS = [
 export default function LicensesPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 pt-12 sm:px-6">
-      <span className="chip">Open source</span>
+      <p className="kicker">Open source</p>
       <h1 className="mt-4 text-[clamp(2.2rem,5vw,3.8rem)] font-semibold leading-none tracking-[-0.04em]">Licences &amp; source code</h1>
       <p className="mt-5 text-lg text-soft">
         {BRAND.name} only ports games whose code <em>and</em> assets carry open licences that allow commercial use and modification, or games we have written permission for.

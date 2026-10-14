@@ -5,7 +5,7 @@ import { siteSound } from "@/lib/site-sound";
 
 const ITEMS = [
   { label: "Play arcade", href: "#games" },
-  { label: "Make a skin", href: "/create" },
+  { label: "Launch your arcade", href: "/create" },
   { label: "How it works", href: "#how" },
   { label: "Leaderboard", href: "/leaderboard" },
   { label: "Order a game", href: "/order" },
@@ -75,7 +75,7 @@ export function TitleMenu() {
               }}
               onFocus={() => setSel(i)}
               onClick={() => choose(i)}
-              className={`group relative flex items-center gap-3 rounded-xl px-5 py-1.5 font-[family-name:var(--font-ui)] text-[clamp(1.3rem,2.6vw,1.75rem)] font-semibold transition-colors ${active ? "text-sun [text-shadow:2px_2px_0_#c2185b]" : "text-soft"}`}
+              className={`group relative flex items-center gap-3 rounded-xl px-5 py-1.5 font-[family-name:var(--font-ui)] text-[clamp(1.3rem,2.6vw,1.75rem)] font-semibold transition-colors ${active ? "text-sun [text-shadow:2px_2px_0_#c2185b]" : "text-white/85 hover:text-white"}`}
             >
               <span className={`w-5 font-sans text-[0.8em] ${active ? "blink" : "opacity-0"}`} aria-hidden>
                 ▶
@@ -86,7 +86,7 @@ export function TitleMenu() {
           );
         })}
       </nav>
-      <p className="pixel mt-4 hidden text-[0.68rem] uppercase tracking-[0.2em] text-dim sm:block">↑ ↓ to choose · enter to select</p>
+      <p className="mt-4 hidden text-sm font-medium text-dim sm:block">↑ ↓ to choose · Enter to select</p>
     </div>
   );
 }

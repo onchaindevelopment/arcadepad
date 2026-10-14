@@ -33,7 +33,7 @@ async function Board({ searchParams }: { searchParams: PageProps<"/leaderboard">
 
   return (
     <div className="mx-auto max-w-5xl px-4 pt-12 sm:px-6">
-      <span className="chip">Leaderboard</span>
+      <p className="kicker">Leaderboard</p>
       <h1 className="mt-4 text-[clamp(2.2rem,5vw,3.8rem)] font-semibold leading-none tracking-[-0.04em]">Top runs</h1>
       <p className="mt-4 max-w-2xl text-lg text-soft">Best score per wallet. Every score here was re-played by the server from the run&apos;s inputs. Bragging rights only.</p>
 
@@ -76,7 +76,7 @@ async function Board({ searchParams }: { searchParams: PageProps<"/leaderboard">
           <table className="w-full text-left">
             <caption className="sr-only">Top scores for ${theme.coin.ticker}</caption>
             <thead>
-              <tr className="pixel text-[0.62rem] uppercase tracking-[0.12em] text-dim">
+              <tr className="pixel text-[0.72rem] uppercase tracking-[0.12em] text-dim">
                 <th scope="col" className="px-5 py-3">#</th>
                 <th scope="col" className="px-5 py-3">Player</th>
                 <th scope="col" className="hidden px-5 py-3 sm:table-cell">Level</th>

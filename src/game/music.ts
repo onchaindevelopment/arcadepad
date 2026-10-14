@@ -108,6 +108,21 @@ export function sequence(song: Song): Step[] {
 
 export const SONGS: Song[] = [
   {
+    // Site theme: driving arcade-fighter energy, A minor.
+    id: "versus",
+    name: "Versus",
+    bpm: 156,
+    bass: "pulse",
+    arp: "up16",
+    drums: "drive",
+    order: "AABCAB",
+    sections: {
+      A: { chords: ["Am", "F", "G", "E"], lead: "A4 . A4 . C5 . A4 . E5 - D5 . C5 . B4 . A4 - - . G4 . A4 . C5 . D5 . E5 - G5 ." },
+      B: { chords: ["Dm", "Am", "E", "E"], lead: "A5 - - . G5 . E5 . F5 - E5 . D5 . C5 . D5 - - . E5 . D5 . C5 . B4 . G#4 - B4 ." },
+      C: { chords: ["F", "G", "E", "Am"], lead: "C5 . C5 . E5 . G5 . F5 - E5 . D5 . C5 . E5 . E5 . G#5 . B5 . A5 - - - A5 . . ." },
+    },
+  },
+  {
     // Site title screen: bright, bouncy, loops cleanly.
     id: "title-screen",
     name: "Title Screen",

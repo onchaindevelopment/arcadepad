@@ -43,8 +43,8 @@ function PickScene() {
           className={`hiw-tile relative grid aspect-[4/3] place-items-end overflow-hidden rounded-xl p-2 ${i === 1 ? "hiw-picked" : ""}`}
           style={{ background: `linear-gradient(160deg, ${c}, ${c}55 60%, #0b0320)`, animationDelay: `${i * 0.08}s` }}
         >
-          <span className="pixel text-[0.55rem] uppercase leading-tight text-white drop-shadow sm:text-[0.62rem]">{name}</span>
-          {i === 1 && <span className="hiw-badge sign absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sun px-2 py-0.5 text-[0.55rem] text-ink">Selected</span>}
+          <span className="pixel text-[0.72rem] uppercase leading-tight text-white drop-shadow sm:text-[0.72rem]">{name}</span>
+          {i === 1 && <span className="hiw-badge sign absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-sun px-2 py-0.5 text-[0.72rem] text-ink">Selected</span>}
         </div>
       ))}
       <Cursor className="hiw-cursor-pick" />
@@ -63,7 +63,7 @@ function SkinScene() {
         <span className="hiw-crisp absolute">
           <MascotStatic theme={glorp} size={88} />
         </span>
-        <span className="pixel absolute -bottom-6 text-[0.55rem] uppercase tracking-widest text-dim">mascot.png</span>
+        <span className="pixel absolute -bottom-6 text-[0.72rem] uppercase tracking-widest text-dim">mascot.png</span>
       </div>
       <span className="sign text-2xl text-sun">→</span>
       <div>
@@ -76,7 +76,7 @@ function SkinScene() {
           <span className="hiw-type inline-block overflow-hidden whitespace-nowrap align-bottom">${glorp.coin.ticker}</span>
           <span className="blink">_</span>
         </p>
-        <p className="pixel mt-1 text-[0.6rem] uppercase tracking-widest text-dim">ticker · palette · sounds</p>
+        <p className="pixel mt-1 text-[0.72rem] uppercase tracking-widest text-dim">ticker · palette · sounds</p>
       </div>
     </div>
   );
@@ -87,7 +87,7 @@ function PlayScene() {
     <div className="flex h-full items-center justify-center">
       <div className="relative aspect-[4/3] h-full max-h-[260px] overflow-hidden rounded-xl" style={{ background: P.bg, boxShadow: `0 0 40px -10px ${P.primary}` }}>
         <GameThumb gameId="breakout" theme={glorp} label="Breakout in the GLORP skin" />
-        <span className="pixel absolute left-2 top-2 rounded bg-black/50 px-1.5 py-0.5 text-[0.55rem] uppercase" style={{ color: P.primary }}>
+        <span className="pixel absolute left-2 top-2 rounded bg-black/50 px-1.5 py-0.5 text-[0.72rem] uppercase" style={{ color: P.primary }}>
           ${glorp.coin.ticker} breakout
         </span>
       </div>
@@ -122,13 +122,13 @@ function ShareScene() {
         <div className="flex items-center gap-3">
           <MascotStatic theme={glorp} size={52} />
           <div>
-            <p className="pixel text-[0.55rem] uppercase" style={{ color: P.primary }}>
+            <p className="pixel text-[0.72rem] uppercase" style={{ color: P.primary }}>
               ${glorp.coin.ticker} · breakout
             </p>
             <p className="sign text-3xl leading-none text-white">12,400</p>
           </div>
         </div>
-        <p className="pixel mt-3 text-[0.5rem] uppercase tracking-widest text-white/60">replay-verified · rank #1</p>
+        <p className="pixel mt-3 text-[0.72rem] uppercase tracking-widest text-white/60">replay-verified · rank #1</p>
       </div>
       <div className="relative flex flex-col gap-2">
         <span className="hiw-press btn btn-sm">Post on X</span>
@@ -192,7 +192,7 @@ export function HowItWorks() {
               0{i + 1}
               <span className="text-base text-white/40 sm:text-xl">/0{STEPS.length}</span>
             </p>
-            <p className="pixel text-right text-[0.6rem] uppercase tracking-[0.18em] text-white/50">
+            <p className="pixel text-right text-[0.72rem] uppercase tracking-[0.18em] text-white/50">
               Step {i + 1} of {STEPS.length}
             </p>
           </div>

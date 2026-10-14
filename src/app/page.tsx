@@ -6,6 +6,7 @@ import { GameGrid } from "@/components/GameGrid";
 import { HowItWorks } from "@/components/HowItWorks";
 import { CountUp } from "@/components/CountUp";
 import { TitleMenu } from "@/components/TitleMenu";
+import { InsertCoin } from "@/components/InsertCoin";
 import { GAMES } from "@/games/registry";
 import { CATEGORIES, categoryOf } from "@/games/categories";
 
@@ -41,6 +42,7 @@ export default function Home() {
 
   return (
     <>
+      <InsertCoin />
       {/* Hero: pinball backglass */}
       <section className="relative -mt-[64px] flex min-h-[100svh] flex-col overflow-hidden px-4 pb-0 pt-[96px] sm:-mt-[68px] sm:pt-[110px]">
         <div className="sunburst pointer-events-none absolute left-1/2 top-[42%] h-[160vmax] w-[160vmax] -translate-x-1/2 -translate-y-1/2" aria-hidden />
@@ -58,7 +60,7 @@ export default function Home() {
             <p className="pixel text-[0.72rem] uppercase tracking-[0.3em] text-sky sm:text-sm">★ Now playing ★</p>
             <h1 className="mt-3">
               <span className="chrome block text-[clamp(2.8rem,10.5vw,7.4rem)] leading-[0.95]">ArcadePad</span>
-              <span className="mt-4 block text-[clamp(1.15rem,3.2vw,2.3rem)] leading-tight text-white [text-shadow:2px_2px_0_var(--hot),4px_4px_0_#3b0f7a]">Arcade classics for your coin</span>
+              <span className="mt-4 block text-balance text-[clamp(1rem,2.7vw,1.85rem)] leading-tight text-white [text-shadow:2px_2px_0_var(--hot),4px_4px_0_#3b0f7a]">The arcade launchpad for your coin</span>
             </h1>
           </div>
 
@@ -71,7 +73,7 @@ export default function Home() {
             {stats.map((s, i) => (
               <div key={s.label} className="flex flex-col items-center">
                 <dd className="text-[clamp(2rem,4.4vw,2.8rem)] leading-none">{s.to === 0 ? "0" : <CountUp to={s.to} suffix={s.suffix} duration={1500 + i * 80} delay={480 + i * 90} />}</dd>
-                <dt className="mt-1.5 text-[0.95rem] uppercase tracking-[0.06em] opacity-80">{s.label}</dt>
+                <dt className="mt-2 font-sans text-[0.8rem] font-semibold uppercase tracking-[0.12em] [text-shadow:none]" style={{ color: "#ffb066" }}>{s.label}</dt>
               </div>
             ))}
           </dl>
@@ -116,7 +118,7 @@ export default function Home() {
       </section>
 
       {/* Live demo */}
-      <section className="mx-auto grid max-w-6xl items-center gap-14 px-4 pt-32 sm:px-6 lg:grid-cols-[1fr_1.15fr]">
+      <section className="mx-auto grid max-w-6xl items-center gap-14 overflow-x-clip px-4 pt-32 sm:px-6 lg:grid-cols-[1fr_1.15fr]">
         <div>
           <p className="kicker">Stage 3 · Attract mode</p>
           <h2 className="mt-5 text-[clamp(2.2rem,5vw,4rem)]">Every game plays itself</h2>
@@ -202,7 +204,7 @@ export default function Home() {
       </section>
 
       {/* Insert coin */}
-      <section className="relative mx-auto max-w-6xl px-4 pt-36 text-center sm:px-6">
+      <section className="relative mx-auto max-w-6xl overflow-hidden px-4 pb-4 pt-36 text-center sm:px-6">
         <div className="sunburst pointer-events-none absolute left-1/2 top-[60%] h-[900px] w-[900px] -translate-x-1/2 -translate-y-1/2 opacity-60" aria-hidden />
         <div className="relative">
           <p className="kicker">Final stage</p>
@@ -210,7 +212,7 @@ export default function Home() {
           <p className="mx-auto mt-7 max-w-md leading-relaxed text-soft">Your mascot, your colours and a leaderboard your community will fight over. No wagering, no entry fees, no token rewards.</p>
           <div className="mt-9 flex flex-wrap justify-center gap-4">
             <Link href="/create" className="btn px-7 py-3.5 text-base">
-              Make your skin
+              Launch your arcade
             </Link>
             <Link href="/order" className="btn btn-hot px-7 py-3.5 text-base">
               Order a game

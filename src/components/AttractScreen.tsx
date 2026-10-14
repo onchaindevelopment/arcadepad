@@ -81,7 +81,7 @@ export function AttractScreen({ games }: { games: Pick<GameMeta, "id" | "name" |
               {game.name}
             </span>
           </span>
-          <span className="pixel shrink-0 text-[0.66rem] uppercase tracking-[0.16em] text-dim">Live demo</span>
+          <span className="pixel shrink-0 text-[0.72rem] uppercase tracking-[0.16em] text-dim">Live demo</span>
         </div>
         <div className="crt screen grid aspect-[4/3] place-items-center transition-colors duration-500" style={{ background: p.bg }}>
           <canvas
@@ -97,7 +97,7 @@ export function AttractScreen({ games }: { games: Pick<GameMeta, "id" | "name" |
           <button className="btn btn-plain btn-sm" onClick={() => setI((n) => n + 1)}>
             Next game →
           </button>
-          <span className="pixel blink hidden text-[0.66rem] uppercase tracking-[0.18em] text-soft sm:inline">Insert coin</span>
+          <span className="pixel blink hidden text-[0.72rem] uppercase tracking-[0.18em] text-soft sm:inline">Insert coin</span>
           <Link href={`/play/${game.id}/${theme.id}`} className="btn btn-sm">
             Play {game.name}
           </Link>
