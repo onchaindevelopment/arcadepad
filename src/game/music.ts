@@ -215,6 +215,7 @@ export const SONGS: Song[] = [
 
 /** Default track per game (mood), others fall back by index. */
 const GAME_SONG: Record<string, string> = {
+  defense: "boss-bear", lander: "lofi-orbit", bridge: "bubble-tea", swarm: "boss-bear", whack: "pump-it", beat: "neon-slope", trails: "moon-chase", four: "lofi-orbit", bomber: "insert-coin",
   breakout: "insert-coin", pinball: "insert-coin", slope: "neon-slope", lanes: "pump-it", runner: "pump-it",
   sling: "bubble-tea", blocks: "candle-wax", maze: "moon-chase", invaders: "boss-bear", rocks: "boss-bear",
   flap: "bubble-tea", jumper: "neon-slope", hopper: "insert-coin", slice: "moon-chase", snake: "moon-chase",

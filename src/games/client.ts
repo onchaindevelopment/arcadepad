@@ -46,6 +46,15 @@ const LOADERS: Record<string, () => Promise<{ default: RendererFactory }>> = {
   chain: () => import("./chain/render.ts") as Promise<{ default: RendererFactory }>,
   towers: () => import("./towers/render.ts") as Promise<{ default: RendererFactory }>,
   putt: () => import("./putt/render.ts") as Promise<{ default: RendererFactory }>,
+  lander: () => import("./lander/render.ts") as Promise<{ default: RendererFactory }>,
+  defense: () => import("./defense/render.ts") as Promise<{ default: RendererFactory }>,
+  bridge: () => import("./bridge/render.ts") as Promise<{ default: RendererFactory }>,
+  beat: () => import("./beat/render.ts") as Promise<{ default: RendererFactory }>,
+  whack: () => import("./whack/render.ts") as Promise<{ default: RendererFactory }>,
+  four: () => import("./four/render.ts") as Promise<{ default: RendererFactory }>,
+  trails: () => import("./trails/render.ts") as Promise<{ default: RendererFactory }>,
+  swarm: () => import("./swarm/render.ts") as Promise<{ default: RendererFactory }>,
+  bomber: () => import("./bomber/render.ts") as Promise<{ default: RendererFactory }>,
 };
 
 export async function loadGame(id: string) {

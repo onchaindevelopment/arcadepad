@@ -39,8 +39,17 @@ import { racer } from "./racer/index.ts";
 import { chain } from "./chain/index.ts";
 import { towers } from "./towers/index.ts";
 import { putt } from "./putt/index.ts";
+import { lander } from "./lander/index.ts";
+import { defense } from "./defense/index.ts";
+import { bridge } from "./bridge/index.ts";
+import { beat } from "./beat/index.ts";
+import { whack } from "./whack/index.ts";
+import { four } from "./four/index.ts";
+import { trails } from "./trails/index.ts";
+import { swarm } from "./swarm/index.ts";
+import { bomber } from "./bomber/index.ts";
 
-export const GAMES: GameDef<never>[] = [breakout, pinball, slope, match3, racer, sling, lanes, helix, putt, runner, blocks, gridfit, solitaire, maze, colorhop, invaders, towers, flap, pulse, hoops, jumper, hopper, hill, slice, blob, turf, puck, snake, rocks, chain, bubbles, tiles, sweeper, barrage, cave, target, duel, stack, merge] as unknown as GameDef<never>[];
+export const GAMES: GameDef<never>[] = [breakout, pinball, slope, match3, racer, sling, lanes, helix, putt, runner, blocks, gridfit, solitaire, maze, colorhop, invaders, towers, flap, pulse, hoops, jumper, hopper, hill, slice, blob, turf, puck, snake, rocks, chain, bubbles, tiles, sweeper, barrage, cave, target, duel, stack, merge, lander, defense, bridge, beat, whack, four, trails, swarm, bomber] as unknown as GameDef<never>[];
 
 export function getGame(id: string): GameDef<unknown> | undefined {
   return GAMES.find((g) => g.id === id) as GameDef<unknown> | undefined;
