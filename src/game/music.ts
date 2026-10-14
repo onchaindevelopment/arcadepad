@@ -221,6 +221,8 @@ const GAME_SONG: Record<string, string> = {
   bubbles: "bubble-tea", cave: "neon-slope", target: "lofi-orbit", duel: "pump-it", stack: "lofi-orbit",
   merge: "lofi-orbit", helix: "neon-slope", colorhop: "bubble-tea", match3: "candle-wax", pulse: "pump-it",
   blob: "lofi-orbit", turf: "moon-chase", hill: "insert-coin", gridfit: "candle-wax", barrage: "boss-bear",
+  solitaire: "lofi-orbit", sweeper: "candle-wax", putt: "bubble-tea", hoops: "pump-it", puck: "moon-chase",
+  towers: "boss-bear", racer: "neon-slope", chain: "insert-coin", tiles: "candle-wax",
 };
 
 export function defaultSongFor(gameId: string): string {

@@ -337,6 +337,11 @@ export function GameHost({
       const p = toField(e.clientX, e.clientY);
       s.px = p.x;
       s.py = p.y;
+      // Right-click is the secondary action (flag, swap, hyperspace...).
+      if (e.pointerType === "mouse" && e.button === 2) {
+        s.pulses.set(BTN.ALT, PULSE_FRAMES);
+        return;
+      }
       if (meta.input.swipe && e.pointerType !== "mouse") {
         s.swipeStart = { x: e.clientX, y: e.clientY, id: e.pointerId };
         wrap.setPointerCapture(e.pointerId);
@@ -389,9 +394,11 @@ export function GameHost({
     const kd = (e: KeyboardEvent) => onKey(e, true);
     const ku = (e: KeyboardEvent) => onKey(e, false);
     const blur = () => (s.held = 0);
+    const noMenu = (e: Event) => e.preventDefault();
     const vis = () => document.hidden && pause();
     wrap.addEventListener("pointermove", onMove);
     wrap.addEventListener("pointerdown", onDown);
+    wrap.addEventListener("contextmenu", noMenu);
     window.addEventListener("pointerup", onUp);
     window.addEventListener("keydown", kd);
     window.addEventListener("keyup", ku);
@@ -400,6 +407,7 @@ export function GameHost({
     return () => {
       wrap.removeEventListener("pointermove", onMove);
       wrap.removeEventListener("pointerdown", onDown);
+      wrap.removeEventListener("contextmenu", noMenu);
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("keydown", kd);
       window.removeEventListener("keyup", ku);

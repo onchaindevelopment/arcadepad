@@ -37,6 +37,15 @@ const LOADERS: Record<string, () => Promise<{ default: RendererFactory }>> = {
   turf: () => import("./turf/render.ts") as Promise<{ default: RendererFactory }>,
   pulse: () => import("./pulse/render.ts") as Promise<{ default: RendererFactory }>,
   colorhop: () => import("./colorhop/render.ts") as Promise<{ default: RendererFactory }>,
+  sweeper: () => import("./sweeper/render.ts") as Promise<{ default: RendererFactory }>,
+  puck: () => import("./puck/render.ts") as Promise<{ default: RendererFactory }>,
+  hoops: () => import("./hoops/render.ts") as Promise<{ default: RendererFactory }>,
+  tiles: () => import("./tiles/render.ts") as Promise<{ default: RendererFactory }>,
+  solitaire: () => import("./solitaire/render.ts") as Promise<{ default: RendererFactory }>,
+  racer: () => import("./racer/render.ts") as Promise<{ default: RendererFactory }>,
+  chain: () => import("./chain/render.ts") as Promise<{ default: RendererFactory }>,
+  towers: () => import("./towers/render.ts") as Promise<{ default: RendererFactory }>,
+  putt: () => import("./putt/render.ts") as Promise<{ default: RendererFactory }>,
 };
 
 export async function loadGame(id: string) {
