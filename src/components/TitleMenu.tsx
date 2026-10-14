@@ -6,16 +6,16 @@ import { siteSound } from "@/lib/site-sound";
 const ITEMS = [
   { label: "Play arcade", href: "#games" },
   { label: "Launchpad", href: "/create" },
+  { label: "Coins", href: "/coins" },
   { label: "How it works", href: "#how" },
   { label: "Leaderboard", href: "/leaderboard" },
-  { label: "New arcades", href: "#launched" },
 ];
 
 /**
  * Title-screen menu: a blinking cursor moved with arrow keys or the mouse, Enter or click
  * to select, with blips. Keys only steer it while the hero is on screen and no field has focus.
  */
-export function TitleMenu() {
+export function TitleMenu({ align = "center" }: { align?: "left" | "center" }) {
   const [sel, setSel] = useState(0);
   const selRef = useRef(0);
   useEffect(() => {
@@ -60,7 +60,7 @@ export function TitleMenu() {
 
   return (
     <div ref={boxRef}>
-      <nav aria-label="Title menu" className="flex flex-col items-center gap-1.5">
+      <nav aria-label="Title menu" className={`flex flex-col gap-0.5 ${align === "left" ? "items-start" : "items-center"}`}>
         {ITEMS.map((it, i) => {
           const active = i === sel;
           return (
@@ -75,18 +75,17 @@ export function TitleMenu() {
               }}
               onFocus={() => setSel(i)}
               onClick={() => choose(i)}
-              className={`group relative flex items-center gap-3 rounded-xl px-5 py-1.5 font-[family-name:var(--font-ui)] text-[clamp(1.3rem,2.6vw,1.75rem)] font-semibold transition-colors ${active ? "text-sun [text-shadow:2px_2px_0_#c2185b]" : "text-white/85 hover:text-white"}`}
+              className={`sign group relative flex items-center gap-3 py-1 text-[clamp(1.5rem,2.8vw,2rem)] uppercase transition-colors ${align === "left" ? "pr-5" : "px-5"} ${active ? "text-sun" : "text-white/80 hover:text-white"}`}
             >
               <span className={`w-5 font-sans text-[0.8em] ${active ? "blink" : "opacity-0"}`} aria-hidden>
                 ▶
               </span>
               {it.label}
-              <span className="w-5" aria-hidden />
             </button>
           );
         })}
       </nav>
-      <p className="mt-4 hidden text-sm font-medium text-dim sm:block">↑ ↓ to choose · Enter to select</p>
+      <p className={`mt-4 hidden text-sm text-dim sm:block ${align === "left" ? "" : "text-center"}`}>↑ ↓ to choose · Enter to select</p>
     </div>
   );
 }

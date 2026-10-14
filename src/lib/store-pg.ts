@@ -164,6 +164,15 @@ export function pgStore(url: string): Store {
       await schema();
       await sql`UPDATE arcades SET hidden = ${hidden} WHERE slug = ${slug}`;
     },
+    async arcadeStats(slugs: string[]) {
+      const out: Record<string, { runs: number; best: number }> = {};
+      for (const sl of slugs) out[sl] = { runs: 0, best: 0 };
+      if (!slugs.length) return out;
+      await schema();
+      const rows = await sql`SELECT theme, count(*)::int AS runs, max(score)::int AS best FROM scores WHERE theme = ANY(${slugs}) GROUP BY theme`;
+      for (const r of rows) out[String(r.theme)] = { runs: Number(r.runs), best: Number(r.best) };
+      return out;
+    },
     async deleteArcade(slug: string) {
       await schema();
       await sql`DELETE FROM arcade_reports WHERE slug = ${slug}`;

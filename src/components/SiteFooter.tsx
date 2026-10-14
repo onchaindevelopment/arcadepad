@@ -4,12 +4,12 @@ import { Logo } from "./Logo";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-32 border-t border-hairline bg-[linear-gradient(180deg,rgba(11,3,32,0.4),#0b0320)]">
+    <footer className="mt-32 border-t-2 border-hairline bg-black">
       {/* Game-over strip */}
       <div className="checker h-[14px] opacity-80" aria-hidden />
       <div className="mx-auto max-w-6xl px-4 pt-14 text-center sm:px-6">
-        <p className="sign text-[clamp(1.8rem,4.4vw,3rem)] text-white [text-shadow:2px_2px_0_var(--hot),4px_4px_0_#3b0f7a]">Thanks for playing</p>
-        <p className="mt-3 font-[family-name:var(--font-ui)] text-xl text-sun">Continue?</p>
+        <p className="sign chrome text-[clamp(1.8rem,4.4vw,3rem)] uppercase">Thanks for playing</p>
+        <p className="sign mt-3 text-2xl uppercase text-sun">Continue?</p>
         <div className="mt-6 flex flex-wrap justify-center gap-4">
           <Link href="/create" className="btn">
             Yes · Launchpad
@@ -41,6 +41,13 @@ export function SiteFooter() {
       <div className="border-t border-hairline">
         <p className="mx-auto max-w-6xl px-4 py-6 text-xs text-dim sm:px-6">
           © {BRAND.name}. Game code is free software under the GNU GPL v3. Demo coins on this site are fictional.
+        </p>
+        <p className="mx-auto max-w-6xl px-4 pb-6 text-xs text-dim sm:px-6">
+          Music: &ldquo;Exhilarate&rdquo; by Kevin MacLeod (
+          <a className="underline hover:text-white" href="https://incompetech.com" rel="noopener noreferrer" target="_blank">incompetech.com</a>
+          ), licensed under{" "}
+          <a className="underline hover:text-white" href="https://creativecommons.org/licenses/by/4.0/" rel="noopener noreferrer license" target="_blank">CC BY 4.0</a>
+          , re-encoded to 128 kbps.
         </p>
       </div>
     </footer>

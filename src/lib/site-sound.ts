@@ -1,29 +1,54 @@
 "use client";
-// Site-wide sound: title-screen chiptune + UI blips, shared by the header speaker button,
-// menus and the game shelf. Browsers allow audio only after a user gesture, so nothing
-// plays until the first click/tap/key.
+// Site-wide sound: a looping background track plus synth UI blips, shared by the header
+// speaker button, menus and the game shelf. Browsers allow audio only after a user
+// gesture, so nothing plays until the first click/tap/key.
+//
+// Music: "Exhilarate" by Kevin MacLeod (incompetech.com), CC BY 4.0, re-encoded to 128 kbps.
 import { Synth } from "@/game/audio";
-import { getSong } from "@/game/music";
 import { THEMES } from "@/themes";
 import type { SfxName } from "@/themes/types";
 
 const KEY = "ap_sound";
+const TRACK = "/music/exhilarate.mp3";
+const VOLUME = 0.32;
+
 let synth: Synth | null = null;
+let track: HTMLAudioElement | null = null;
 let on = true;
-let musicPlaying = false;
+let loaded = false;
 let suppressed = false; // a game is running or we're on a full-screen game route
 const subs = new Set<() => void>();
 
-function get(): Synth {
+function init() {
+  if (loaded) return;
+  loaded = true;
+  try {
+    on = localStorage.getItem(KEY) !== "off";
+  } catch {}
+}
+
+function getSynth(): Synth {
   if (!synth) {
     const t = THEMES[0];
     synth = new Synth(t.sfx, t.music);
-    synth.setSong(getSong("versus") ?? null);
-    try {
-      on = localStorage.getItem(KEY) !== "off";
-    } catch {}
   }
   return synth;
+}
+
+function getTrack(): HTMLAudioElement {
+  if (!track) {
+    track = new Audio(TRACK);
+    track.loop = true;
+    track.preload = "auto";
+    track.volume = VOLUME;
+  }
+  return track;
+}
+
+function playTrack() {
+  const t = getTrack();
+  if (!t.paused) return;
+  void t.play().catch(() => {});
 }
 
 const emit = () => subs.forEach((f) => f());
@@ -33,56 +58,47 @@ export const siteSound = {
     subs.add(f);
     return () => void subs.delete(f);
   },
-  isOn: () => (synth ? on : (() => { try { return localStorage.getItem(KEY) !== "off"; } catch { return true; } })()),
-  /** Call from any user gesture: unlocks audio and starts the title music once. */
+  isOn: () => {
+    init();
+    return on;
+  },
+  /** Call from any user gesture: unlocks audio and starts the music once. */
   wake() {
-    const s = get();
-    s.unlock();
-    if (on && !musicPlaying && !suppressed) {
-      s.startMusic();
-      musicPlaying = true;
-    }
+    init();
+    getSynth().unlock();
+    if (on && !suppressed) playTrack();
   },
   blip(name: SfxName) {
-    const s = get();
+    init();
     if (!on || suppressed) return;
+    const s = getSynth();
     s.unlock();
     s.play(name);
   },
   toggle() {
-    const s = get();
+    init();
     on = !on;
     try {
       localStorage.setItem(KEY, on ? "on" : "off");
     } catch {}
-    s.unlock();
+    getSynth().unlock();
     if (on && !suppressed) {
-      s.startMusic();
-      musicPlaying = true;
-      s.play("extraGood");
+      playTrack();
+      getSynth().play("extraGood");
     } else {
-      s.stopMusic();
-      musicPlaying = false;
+      track?.pause();
     }
     emit();
   },
-  /** Games bring their own music: pause the title tune while one runs. */
+  /** Games bring their own music: pause the site track while one runs. */
   suppress(v: boolean) {
     suppressed = v;
-    if (!synth) return;
-    if (v) {
-      synth.stopMusic();
-      musicPlaying = false;
-    }
+    if (v) track?.pause();
   },
   pause() {
-    synth?.stopMusic();
-    musicPlaying = false;
+    track?.pause();
   },
   resumeIfOn() {
-    if (synth && on && !suppressed && !musicPlaying) {
-      synth.startMusic();
-      musicPlaying = true;
-    }
+    if (track && on && !suppressed) playTrack();
   },
 };

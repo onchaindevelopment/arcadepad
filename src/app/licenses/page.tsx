@@ -18,7 +18,8 @@ const ROWS = [
     from: `Original work by ${BRAND.name}`,
     licence: "GPL-3.0-or-later",
   },
-  { what: "Bricolage Grotesque, Silkscreen (fonts)", from: "The Bricolage Grotesque Project Authors; The Silkscreen Project Authors", licence: "SIL Open Font License 1.1" },
+  { what: "Site music: \"Exhilarate\"", from: "Kevin MacLeod (incompetech.com). Re-encoded to 128 kbps.", licence: "CC BY 4.0" },
+  { what: "Tiny5, Silkscreen, Doto, Geist, Geist Mono (fonts)", from: "The Tiny5, Silkscreen and Doto Project Authors; Vercel (Geist)", licence: "SIL Open Font License 1.1" },
   { what: "Next.js, React, Tailwind CSS", from: "Vercel; Meta; Tailwind Labs", licence: "MIT" },
   { what: "@noble/curves, @noble/hashes, @scure/base, viem, @neondatabase/serverless", from: "Paul Miller; wevm; Neon", licence: "MIT" },
 ];

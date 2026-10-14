@@ -46,3 +46,11 @@ https://github.com/nebez/floppybird
 
 ## Fonts
 Bricolage Grotesque and Silkscreen: SIL Open Font License 1.1 (texts in `assets/fonts/`).
+
+
+## Site music: "Exhilarate" by Kevin MacLeod
+
+- File: `public/music/exhilarate.mp3` (re-encoded from the original 320 kbps MP3 to 128 kbps; no other changes).
+- Source: https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1300028
+- Licence: Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/
+- Credit: "Exhilarate" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0 License. http://creativecommons.org/licenses/by/4.0/

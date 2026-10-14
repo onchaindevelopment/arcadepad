@@ -174,19 +174,17 @@ export function HowItWorks() {
   return (
     <div ref={boxRef} className="relative mx-auto max-w-[900px]" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       {/* Cabinet */}
-      <div className="relative rounded-[34px] p-3 sm:p-4" style={{ background: "linear-gradient(180deg, #3a1a72, #1f0b42 40%, #12062a)", boxShadow: "0 0 0 2px rgba(255,255,255,0.08), 0 0 0 6px #0b0320, 0 40px 80px -30px rgba(0,0,0,0.9), 0 0 60px -20px rgba(255,46,136,0.5)" }}>
+      <div className="relative border-2 border-white bg-black p-3 shadow-[6px_6px_0_rgba(255,210,61,0.9)] sm:p-4">
         {/* Side art stripes */}
-        <div className="pointer-events-none absolute inset-y-10 -left-2 w-2 rounded-full bg-[linear-gradient(var(--hot),var(--orange),var(--sun))]" aria-hidden />
-        <div className="pointer-events-none absolute inset-y-10 -right-2 w-2 rounded-full bg-[linear-gradient(var(--sky),var(--grape),var(--hot))]" aria-hidden />
 
         {/* Marquee */}
-        <div className="relative mb-3 overflow-hidden rounded-[22px] px-6 py-3 text-center" style={{ background: "linear-gradient(90deg, #ff2e88, #ff7a1a, #ffd23d)" }}>
+        <div className="relative mb-3 overflow-hidden px-6 py-3 text-center" style={{ background: "#fff" }}>
           <div className="bulbs" aria-hidden />
           <p className="sign no-shadow text-lg text-ink sm:text-2xl">How it works</p>
         </div>
 
         {/* Screen */}
-        <div className="crt relative overflow-hidden rounded-[18px] bg-[#0b0320] px-4 pb-4 pt-4 sm:px-7 sm:pt-6" style={{ boxShadow: "inset 0 0 0 2px rgba(255,255,255,0.06), inset 0 0 60px rgba(0,0,0,0.8)" }}>
+        <div className="crt relative overflow-hidden border-2 border-white/20 bg-[#070707] px-4 pb-4 pt-4 sm:px-7 sm:pt-6">
           <div className="flex items-start justify-between gap-3">
             <p className="sign no-shadow text-3xl leading-none sm:text-5xl" style={{ color: step.color }}>
               0{i + 1}
@@ -209,7 +207,7 @@ export function HowItWorks() {
         </div>
 
         {/* Control panel */}
-        <div className="mt-3 flex items-center justify-between gap-3 rounded-[22px] bg-[#12062a] px-4 py-3 shadow-[inset_0_2px_0_rgba(255,255,255,0.06)]">
+        <div className="mt-3 flex items-center justify-between gap-3 border-2 border-white/20 px-4 py-3">
           <button type="button" className="btn btn-plain btn-sm" onClick={() => go(-1)} aria-label="Previous step">
             ◀ Back
           </button>

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Bungee, Doto, Geist, Geist_Mono, Silkscreen, Tiny5 } from "next/font/google";
+import { Doto, Geist, Geist_Mono, Silkscreen, Tiny5 } from "next/font/google";
 import { BRAND } from "@/brand";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -8,7 +8,6 @@ import { Suspense } from "react";
 import "./globals.css";
 
 const doto = Doto({ variable: "--font-doto", subsets: ["latin"], weight: "variable", axes: ["ROND"], display: "swap" });
-const bungee = Bungee({ variable: "--font-bungee", subsets: ["latin"], weight: "400", display: "swap" });
 const tiny5 = Tiny5({ variable: "--font-tiny5", subsets: ["latin"], weight: "400", display: "swap" });
 const geist = Geist({ variable: "--font-geist", subsets: ["latin"], display: "swap" });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], display: "swap" });
@@ -30,7 +29,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${bungee.variable} ${tiny5.variable} ${doto.variable} ${geist.variable} ${geistMono.variable} ${silk.variable} h-full antialiased`}>
+    <html lang="en" suppressHydrationWarning className={`${tiny5.variable} ${doto.variable} ${geist.variable} ${geistMono.variable} ${silk.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 btn btn-sun">
           Skip to content

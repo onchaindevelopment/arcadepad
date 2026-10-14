@@ -47,25 +47,25 @@ async function Arcade({ params }: { params: PageProps<"/a/[slug]">["params"] }) 
 
   return (
     <>
-      <section className="relative -mt-[76px] overflow-hidden px-4 pb-14 pt-[100px] sm:-mt-[80px] sm:pt-[112px]">
+      <section className="relative overflow-hidden px-4 pb-14 pt-12">
         <div
           className="sunburst pointer-events-none absolute left-1/2 top-[45%] h-[140vmax] w-[140vmax] -translate-x-1/2 -translate-y-1/2"
           style={{ background: `repeating-conic-gradient(from 0deg, ${p.primary}33 0deg 7deg, ${p.secondary}14 7deg 14deg)` }}
           aria-hidden
         />
         <div className="relative z-10 mx-auto flex max-w-[900px] flex-col items-center text-center">
-          <div className="relative w-full rounded-[36px] px-5 pb-9 pt-8 sm:px-12" style={{ background: `linear-gradient(180deg, ${p.bg2}, ${p.bg})`, boxShadow: `0 0 0 3px ${p.primary}, 0 0 0 8px #12062a, 0 0 0 10px ${p.secondary}99, 0 0 70px -10px ${p.primary}` }}>
+          <div className="relative w-full border-2 border-white px-5 pb-9 pt-8 sm:px-12" style={{ background: `radial-gradient(80% 120% at 50% 0%, ${p.primary}30, transparent 70%), #000`, boxShadow: `6px 6px 0 ${p.primary}` }}>
             <div className="bulbs" aria-hidden />
             <p className="pixel text-sm uppercase tracking-[0.2em]" style={{ color: p.primary }}>
               ★ Now playing ★
             </p>
             <div className="mt-4 flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-7">
-              <span className="grid h-28 w-28 shrink-0 place-items-center rounded-3xl border-2 border-white/15" style={{ background: `${p.ink}cc`, boxShadow: `0 0 40px -8px ${p.primary}` }}>
+              <span className="grid h-28 w-28 shrink-0 place-items-center border-2 border-white/30" style={{ background: `${p.ink}cc`, boxShadow: `0 0 40px -8px ${p.primary}` }}>
                 <Mascot theme={t} size={92} label={`${t.coin.name} mascot`} />
               </span>
               <h1 className="text-left max-sm:text-center">
                 <span className="chrome block text-[clamp(2.6rem,9vw,5.6rem)] leading-[0.95]">${t.coin.ticker}</span>
-                <span className="mt-2 block text-[clamp(1.1rem,3vw,1.9rem)] text-white [text-shadow:2px_2px_0_var(--hot)]">{t.coin.name} Arcade</span>
+                <span className="mt-2 block text-[clamp(1.1rem,3vw,1.9rem)] uppercase text-soft">{t.coin.name} Arcade</span>
               </h1>
             </div>
           </div>
@@ -85,7 +85,7 @@ async function Arcade({ params }: { params: PageProps<"/a/[slug]">["params"] }) 
           <div className="mt-6">
             <ArcadeActions slug={a.slug} ticker={t.coin.ticker} />
           </div>
-          <p className="mt-6 max-w-xl rounded-2xl border border-hairline bg-ink/60 px-4 py-3 text-sm leading-relaxed text-dim">
+          <p className="mt-6 max-w-xl border-2 border-hairline bg-black px-4 py-3 text-sm leading-relaxed text-dim">
             Community launch. Not affiliated with or endorsed by the {t.coin.name} team or ArcadePad. High scores are for bragging rights only: no prizes, no wagering, no token rewards.
           </p>
         </div>

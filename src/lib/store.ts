@@ -211,6 +211,19 @@ const fileStore = {
     a.hidden = hidden;
     await persist(db);
   },
+  /** Verified runs and best score per launched arcade. */
+  async arcadeStats(slugs: string[]): Promise<Record<string, { runs: number; best: number }>> {
+    const db = await load();
+    const out: Record<string, { runs: number; best: number }> = {};
+    for (const sl of slugs) out[sl] = { runs: 0, best: 0 };
+    for (const sc of db.scores) {
+      const o = out[sc.theme];
+      if (!o) continue;
+      o.runs++;
+      o.best = Math.max(o.best, sc.score);
+    }
+    return out;
+  },
   /** Removes an arcade (used to clean up test launches). */
   async deleteArcade(slug: string) {
     const db = await load();
