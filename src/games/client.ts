@@ -27,6 +27,7 @@ const LOADERS: Record<string, () => Promise<{ default: RendererFactory }>> = {
   lanes: () => import("./lanes/render.ts") as Promise<{ default: RendererFactory }>,
   hopper: () => import("./hopper/render.ts") as Promise<{ default: RendererFactory }>,
   sling: () => import("./sling/render.ts") as Promise<{ default: RendererFactory }>,
+  slope: () => import("./slope/render.ts") as Promise<{ default: RendererFactory }>,
 };
 
 export async function loadGame(id: string) {

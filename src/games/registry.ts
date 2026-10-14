@@ -20,8 +20,9 @@ import { cave } from "./cave/index.ts";
 import { lanes } from "./lanes/index.ts";
 import { hopper } from "./hopper/index.ts";
 import { sling } from "./sling/index.ts";
+import { slope } from "./slope/index.ts";
 
-export const GAMES: GameDef<never>[] = [breakout, pinball, sling, lanes, runner, blocks, maze, invaders, flap, jumper, hopper, slice, snake, rocks, bubbles, cave, target, duel, stack, merge] as unknown as GameDef<never>[];
+export const GAMES: GameDef<never>[] = [breakout, pinball, slope, sling, lanes, runner, blocks, maze, invaders, flap, jumper, hopper, slice, snake, rocks, bubbles, cave, target, duel, stack, merge] as unknown as GameDef<never>[];
 
 export function getGame(id: string): GameDef<unknown> | undefined {
   return GAMES.find((g) => g.id === id) as GameDef<unknown> | undefined;
