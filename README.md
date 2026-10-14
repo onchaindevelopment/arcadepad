@@ -86,7 +86,7 @@ ArcadePad is GPL-3.0-or-later (`LICENSE`). Ported game logic keeps its original 
 | Merge to Moon | 2048 (Gabriele Cirulli) | MIT |
 | Rock Blaster | HTML5 canvas rock shooter (Doug McInnes) | MIT |
 | Moon Flap | floppybird (nebez and contributors), constants only | Apache-2.0 |
-| Block Drop, Maze Dash, FUD Defense, Moon Stack, Moon Pinball, Moon Slope, Moon Sling, Moon Dash 3, Moon Jumper, Coin Crossing, Coin Slash, Coin Toss, Bubble Pop, Paddle Duel, Moon Tunnel | Original ArcadePad designs | GPL-3.0-or-later |
+| Block Drop, Maze Dash, FUD Defense, Moon Stack, Moon Pinball, Moon Slope, Moon Helix, Color Hop, Moon Match, Pulse Run, Blob Grow, Turf Paint, Hill Rider, Grid Fit, Ball Barrage, Moon Sling, Moon Dash 3, Moon Jumper, Coin Crossing, Coin Slash, Coin Toss, Bubble Pop, Paddle Duel, Moon Tunnel | Original ArcadePad designs | GPL-3.0-or-later |
 
 Only game logic is ever ported. No artwork, sounds, levels, maps or fonts from those projects are used; all of that is original here. Trademarked game names, characters and recognisable trade dress are never used: genre mechanics are, their look is not.
 

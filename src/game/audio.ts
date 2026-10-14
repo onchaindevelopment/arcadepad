@@ -1,5 +1,6 @@
 // Tiny WebAudio synth: theme packs describe sounds as recipes, nothing is sampled.
 import type { MusicRecipe, SfxName, SfxRecipe } from "@/themes/types";
+import { hzOf, sequence, type Song, type Step } from "./music";
 
 const NOTE_INDEX: Record<string, number> = { C: 0, "C#": 1, D: 2, "D#": 3, E: 4, F: 5, "F#": 6, G: 7, "G#": 8, A: 9, "A#": 10, B: 11 };
 
@@ -21,6 +22,9 @@ export class Synth {
   private lastPlayed: Partial<Record<SfxName, number>> = {};
   muted = false;
   musicOn = true;
+  /** Song from the library; null plays the skin's own 16-step theme loop. */
+  private song: Song | null = null;
+  private seq: Step[] = [];
 
   constructor(private sfx: Record<SfxName, SfxRecipe>, private music: MusicRecipe) {}
 
@@ -89,12 +93,30 @@ export class Synth {
     o.stop(now + r.dur + 0.02);
   }
 
+  /** Pick a library song (null = skin theme loop). Restarts playback if music is running. */
+  setSong(song: Song | null) {
+    const wasPlaying = this.musicTimer !== null;
+    this.stopMusic();
+    this.song = song;
+    this.seq = song ? sequence(song) : [];
+    if (wasPlaying) this.startMusic();
+  }
+
   startMusic() {
     if (!this.ctx || this.musicTimer !== null || !this.musicOn) return;
     this.step = 0;
     this.nextTime = this.ctx.currentTime + 0.05;
     const tick = () => {
       if (!this.ctx) return;
+      if (this.song) {
+        const stepDur = 60 / this.song.bpm / 4;
+        while (this.nextTime < this.ctx.currentTime + 0.25) {
+          this.scheduleStep(this.seq[this.step], this.nextTime, stepDur);
+          this.step = (this.step + 1) % this.seq.length;
+          this.nextTime += stepDur;
+        }
+        return;
+      }
       const stepDur = 60 / this.music.bpm / 4;
       while (this.nextTime < this.ctx.currentTime + 0.2) {
         this.scheduleNote(this.music.leadSteps, this.music.lead, this.step, this.nextTime, stepDur, 0.5);
@@ -105,6 +127,60 @@ export class Synth {
     };
     tick();
     this.musicTimer = window.setInterval(tick, 50);
+  }
+
+  private tone(wave: OscillatorType, hz: number, t: number, dur: number, vol: number) {
+    if (!this.ctx || !this.musicGain) return;
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.type = wave;
+    o.frequency.value = hz;
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g).connect(this.musicGain);
+    o.start(t);
+    o.stop(t + dur + 0.02);
+  }
+
+  private noiseHit(t: number, dur: number, vol: number, type: BiquadFilterType, freq: number) {
+    if (!this.ctx || !this.musicGain || !this.noise) return;
+    const src = this.ctx.createBufferSource();
+    src.buffer = this.noise;
+    const f = this.ctx.createBiquadFilter();
+    f.type = type;
+    f.frequency.value = freq;
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    src.connect(f).connect(g).connect(this.musicGain);
+    src.start(t);
+    src.stop(t + dur + 0.02);
+  }
+
+  private scheduleStep(st: Step | undefined, t: number, stepDur: number) {
+    if (!st || !this.ctx || !this.musicGain) return;
+    // Skin voices: the theme's lead and bass waveforms colour every song.
+    if (st.lead) this.tone(this.music.lead, hzOf(st.lead.midi), t, stepDur * st.lead.len * 0.92, 0.42);
+    if (st.bass) this.tone(this.music.bass, hzOf(st.bass.midi), t, stepDur * st.bass.len * 0.9, 0.7);
+    if (st.arp) this.tone("triangle", hzOf(st.arp.midi), t, stepDur * st.arp.len * 0.8, 0.16);
+    if (st.kick) {
+      const o = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      o.type = "sine";
+      o.frequency.setValueAtTime(150, t);
+      o.frequency.exponentialRampToValueAtTime(42, t + 0.12);
+      g.gain.setValueAtTime(0.9, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+      o.connect(g).connect(this.musicGain);
+      o.start(t);
+      o.stop(t + 0.18);
+    }
+    if (st.snare) {
+      this.noiseHit(t, 0.13, 0.45, "bandpass", 1900);
+      this.tone("triangle", 190, t, 0.08, 0.25);
+    }
+    if (st.hat) this.noiseHit(t, 0.035, 0.18, "highpass", 7500);
+    if (st.crash) this.noiseHit(t, 0.7, 0.3, "highpass", 5000);
   }
 
   stopMusic() {

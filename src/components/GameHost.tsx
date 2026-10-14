@@ -6,6 +6,7 @@ import { BTN, STEP_MS, type GameDef, type GameEngine, type GameMeta, type GameRe
 import { encodeInputs } from "@/games/core/replay";
 import type { ThemePack } from "@/themes/types";
 import { Synth } from "@/game/audio";
+import { SONGS, defaultSongFor, getSong } from "@/game/music";
 import { Mascot } from "./Mascot";
 import { WalletButton, useWallet } from "./WalletButton";
 
@@ -62,6 +63,9 @@ export function GameHost({
   const stageRef = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState({ w: 0, h: 0 });
   const [isFs, setIsFs] = useState(false);
+  // Music: a library song id, "theme" (the skin's own loop) or "off".
+  const songKey = `gp_song_${meta.id}`;
+  const [songId, setSongId] = useState<string>(() => defaultSongFor(meta.id));
   const [phase, setPhase] = useState<Phase>("loading");
   const [hud, setHud] = useState<Hud>({ score: 0 });
   const [mood, setMood] = useState<Mood>("idle");
@@ -114,8 +118,16 @@ export function GameHost({
       saved = localStorage.getItem("gp_muted") === "1";
     } catch {}
     s.synth.setMuted(saved);
-    // Restoring a per-browser preference after mount keeps hydration consistent.
+    let savedSong = defaultSongFor(meta.id);
+    try {
+      const v = localStorage.getItem(`gp_song_${meta.id}`);
+      if (v && (v === "off" || v === "theme" || getSong(v))) savedSong = v;
+    } catch {}
+    s.synth.setSong(getSong(savedSong) ?? null);
+    s.synth.musicOn = savedSong !== "off";
     // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSongId(savedSong);
+    // Restoring a per-browser preference after mount keeps hydration consistent.
     setMuted(saved);
     loadGame(meta.id).then(({ def, createRenderer }) => {
       if (!alive) return;
@@ -396,6 +408,24 @@ export function GameHost({
     };
   }, [meta.field.h, meta.field.w, meta.input.swipe, meta.input.touchMap, pause, resume]);
 
+  const songChoices = [defaultSongFor(meta.id), ...SONGS.map((x) => x.id).filter((id) => id !== defaultSongFor(meta.id)), "theme", "off"];
+  const songLabel = (id: string) => (id === "off" ? "Music off" : id === "theme" ? `$${theme.coin.ticker} theme` : (getSong(id)?.name ?? id));
+  const cycleSong = () => {
+    const next = songChoices[(songChoices.indexOf(songId) + 1) % songChoices.length];
+    setSongId(next);
+    try {
+      localStorage.setItem(songKey, next);
+    } catch {}
+    const syn = g.current.synth;
+    if (!syn) return;
+    syn.unlock();
+    syn.musicOn = next !== "off";
+    syn.setSong(getSong(next) ?? null);
+    if (next === "off") syn.stopMusic();
+    else if (g.current.phase === "playing") syn.startMusic();
+    showToast(`♪ ${songLabel(next)}`, 1400);
+  };
+
   const toggleMute = () => {
     const n = !muted;
     setMuted(n);
@@ -470,6 +500,9 @@ export function GameHost({
           </span>
         )}
         {hud.label && <span className="pixel hidden max-w-[12rem] truncate text-[0.65rem] opacity-80 md:inline">{hud.label}</span>}
+        <button className={`${barBtn} max-w-[9rem] truncate`} style={{ borderColor: `${BEZEL_TEXT}55` }} onClick={cycleSong} aria-label={`Music: ${songLabel(songId)}. Click for next track.`} title="Next music track">
+          ♪<span className="ml-1 hidden sm:inline">{songLabel(songId)}</span>
+        </button>
         <button className={barBtn} style={{ borderColor: `${BEZEL_TEXT}55` }} onClick={toggleMute} aria-pressed={muted} aria-label={muted ? "Sound off" : "Sound on"}>
           {muted ? "🔇" : "🔊"}
         </button>

@@ -28,6 +28,15 @@ const LOADERS: Record<string, () => Promise<{ default: RendererFactory }>> = {
   hopper: () => import("./hopper/render.ts") as Promise<{ default: RendererFactory }>,
   sling: () => import("./sling/render.ts") as Promise<{ default: RendererFactory }>,
   slope: () => import("./slope/render.ts") as Promise<{ default: RendererFactory }>,
+  blob: () => import("./blob/render.ts") as Promise<{ default: RendererFactory }>,
+  barrage: () => import("./barrage/render.ts") as Promise<{ default: RendererFactory }>,
+  gridfit: () => import("./gridfit/render.ts") as Promise<{ default: RendererFactory }>,
+  match3: () => import("./match3/render.ts") as Promise<{ default: RendererFactory }>,
+  helix: () => import("./helix/render.ts") as Promise<{ default: RendererFactory }>,
+  hill: () => import("./hill/render.ts") as Promise<{ default: RendererFactory }>,
+  turf: () => import("./turf/render.ts") as Promise<{ default: RendererFactory }>,
+  pulse: () => import("./pulse/render.ts") as Promise<{ default: RendererFactory }>,
+  colorhop: () => import("./colorhop/render.ts") as Promise<{ default: RendererFactory }>,
 };
 
 export async function loadGame(id: string) {
