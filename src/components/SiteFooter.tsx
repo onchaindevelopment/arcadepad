@@ -43,11 +43,9 @@ export function SiteFooter() {
           © {BRAND.name}. Game code is free software under the GNU GPL v3. Demo coins on this site are fictional.
         </p>
         <p className="mx-auto max-w-6xl px-4 pb-6 text-xs text-dim sm:px-6">
-          Music: &ldquo;Exhilarate&rdquo; by Kevin MacLeod (
-          <a className="underline hover:text-white" href="https://incompetech.com" rel="noopener noreferrer" target="_blank">incompetech.com</a>
-          ), licensed under{" "}
-          <a className="underline hover:text-white" href="https://creativecommons.org/licenses/by/4.0/" rel="noopener noreferrer license" target="_blank">CC BY 4.0</a>
-          , re-encoded to 128 kbps.
+          Music: &ldquo;Insert Coin&rdquo; by megupets (
+          <a className="underline hover:text-white" href="https://opengameart.org/content/insert-coin" rel="noopener noreferrer" target="_blank">OpenGameArt</a>
+          ), CC0.
         </p>
       </div>
     </footer>

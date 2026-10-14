@@ -3,14 +3,14 @@
 // speaker button, menus and the game shelf. Browsers allow audio only after a user
 // gesture, so nothing plays until the first click/tap/key.
 //
-// Music: "Exhilarate" by Kevin MacLeod (incompetech.com), CC BY 4.0, re-encoded to 128 kbps.
+// Music: "Insert Coin" by megupets (opengameart.org/content/insert-coin), CC0.
 import { Synth } from "@/game/audio";
 import { THEMES } from "@/themes";
 import type { SfxName } from "@/themes/types";
 
 const KEY = "ap_sound";
-const TRACK = "/music/exhilarate.mp3";
-const VOLUME = 0.32;
+const TRACK = "/music/insert-coin.mp3";
+const VOLUME = 0.35;
 
 let synth: Synth | null = null;
 let track: HTMLAudioElement | null = null;

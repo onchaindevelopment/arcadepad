@@ -48,9 +48,9 @@ https://github.com/nebez/floppybird
 Bricolage Grotesque and Silkscreen: SIL Open Font License 1.1 (texts in `assets/fonts/`).
 
 
-## Site music: "Exhilarate" by Kevin MacLeod
+## Site music: "Insert Coin" by megupets
 
-- File: `public/music/exhilarate.mp3` (re-encoded from the original 320 kbps MP3 to 128 kbps; no other changes).
-- Source: https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1300028
-- Licence: Creative Commons Attribution 4.0 International (CC BY 4.0), https://creativecommons.org/licenses/by/4.0/
-- Credit: "Exhilarate" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0 License. http://creativecommons.org/licenses/by/4.0/
+- File: `public/music/insert-coin.mp3` (re-encoded from the original 320 kbps MP3 to 160 kbps; no other changes).
+- Source: https://opengameart.org/content/insert-coin
+- Licence: CC0 1.0 Universal (public domain dedication), https://creativecommons.org/publicdomain/zero/1.0/
+- Credit (optional, as suggested by the author): Song by megupets, for more go to megupets.com
