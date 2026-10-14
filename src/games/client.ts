@@ -55,6 +55,15 @@ const LOADERS: Record<string, () => Promise<{ default: RendererFactory }>> = {
   trails: () => import("./trails/render.ts") as Promise<{ default: RendererFactory }>,
   swarm: () => import("./swarm/render.ts") as Promise<{ default: RendererFactory }>,
   bomber: () => import("./bomber/render.ts") as Promise<{ default: RendererFactory }>,
+  pins: () => import("./pins/render.ts") as Promise<{ default: RendererFactory }>,
+  crawler: () => import("./crawler/render.ts") as Promise<{ default: RendererFactory }>,
+  checkers: () => import("./checkers/render.ts") as Promise<{ default: RendererFactory }>,
+  hex: () => import("./hex/render.ts") as Promise<{ default: RendererFactory }>,
+  echo: () => import("./echo/render.ts") as Promise<{ default: RendererFactory }>,
+  tanks: () => import("./tanks/render.ts") as Promise<{ default: RendererFactory }>,
+  digger: () => import("./digger/render.ts") as Promise<{ default: RendererFactory }>,
+  crates: () => import("./crates/render.ts") as Promise<{ default: RendererFactory }>,
+  quest: () => import("./quest/render.ts") as Promise<{ default: RendererFactory }>,
 };
 
 export async function loadGame(id: string) {

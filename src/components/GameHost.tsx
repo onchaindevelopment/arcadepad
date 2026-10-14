@@ -28,6 +28,18 @@ const BEZEL_TEXT = "#FFF8EE";
 const PULSE_FRAMES = 4;
 const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)];
 
+// Drawing is cosmetic: a renderer bug must never stop the run (the engine keeps stepping
+// and the score still verifies). Log the first failure only.
+let drawFailed = false;
+function safeDraw(fn: () => void) {
+  try {
+    fn();
+  } catch (e) {
+    if (!drawFailed) console.error("renderer error", e);
+    drawFailed = true;
+  }
+}
+
 const KEYMAP: Record<string, number> = {
   arrowup: BTN.UP, w: BTN.UP,
   arrowdown: BTN.DOWN, s: BTN.DOWN,
@@ -220,7 +232,7 @@ export function GameHost({
         s.game.step(input);
         const evts = s.game.events;
         if (evts.length) {
-          s.renderer!.onEvents(evts, s.game.view());
+          safeDraw(() => s.renderer!.onEvents(evts, s.game!.view()));
           for (const e of evts) {
             if (e.sfx) s.synth!.play(e.sfx);
             if (e.mood) flashMood(e.mood, e.mood === "sad" ? 1500 : 900);
@@ -229,13 +241,13 @@ export function GameHost({
           }
         }
         if (s.game.done) {
-          s.renderer!.draw(s.game.view(), dt);
+          safeDraw(() => s.renderer!.draw(s.game!.view(), dt));
           void finish();
           return;
         }
       }
       if (s.acc > STEP_MS * 6) s.acc = 0;
-      s.renderer!.draw(s.game.view(), dt);
+      safeDraw(() => s.renderer!.draw(s.game!.view(), dt));
       const h = s.game.hud();
       const key = `${h.score}|${h.lives}|${h.level}|${h.label}`;
       if (key !== s.hudKey) {

@@ -1,7 +1,7 @@
 // Four Up renderer: chunky themed rack, mascot coins vs bear coins, bouncy drops,
 // glowing winning four, a rung ladder and a bear that reacts.
 import type { ThemePack } from "../../themes/types.ts";
-import { makeKit, type Kit } from "../core/render-kit.ts";
+import { makeKit, type Kit, rivalColor } from "../core/render-kit.ts";
 import type { GameEvent, GameRenderer } from "../core/types.ts";
 import { AIM_Y, BEAR, BOARD_X, BOARD_Y, CELL, COLS, H, ROWS, RUNGS, W, YOU, type FourView } from "./index.ts";
 
@@ -61,6 +61,7 @@ function bearFace(ctx: CanvasRenderingContext2D, x: number, y: number, s: number
 export default function createRenderer(canvas: HTMLCanvasElement, theme: ThemePack): GameRenderer<FourView> {
   const kit: Kit = makeKit(canvas, theme, W, H);
   const p = theme.palette;
+  const rival = rivalColor(theme);
   const { ctx } = kit;
   let t = 0;
   let squash: { idx: number; ms: number } | null = null;
@@ -72,7 +73,7 @@ export default function createRenderer(canvas: HTMLCanvasElement, theme: ThemePa
     ctx.save();
     ctx.translate(x, y);
     ctx.scale(sx, sy);
-    const fill = who === YOU ? p.primary : p.secondary;
+    const fill = who === YOU ? p.primary : rival;
     ring(ctx, 0, 0, R, fill, p.ink);
     ctx.strokeStyle = "rgba(255,255,255,0.35)";
     ctx.lineWidth = 2;
@@ -95,7 +96,7 @@ export default function createRenderer(canvas: HTMLCanvasElement, theme: ThemePa
       for (const e of events) {
         if (e.t === "thud") {
           squash = { idx: (e.row as number) * COLS + (e.col as number), ms: 220 };
-          kit.fx.burst(e.x!, e.y! + R - 2, e.who === YOU ? p.primary : p.secondary, 8, 110, 380);
+          kit.fx.burst(e.x!, e.y! + R - 2, e.who === YOU ? p.primary : rival, 8, 110, 380);
           kit.fx.addShake(2 + (e.power as number) * 3);
         } else if (e.t === "drop") {
           kit.fx.burst(e.x!, e.y!, p.text, 4, 60, 0);
@@ -113,7 +114,7 @@ export default function createRenderer(canvas: HTMLCanvasElement, theme: ThemePa
         } else if (e.t === "lose") {
           kit.fx.flash();
           kit.fx.addShake(8);
-          for (const i of e.cells as number[]) kit.fx.burst(cx(i % COLS), cy(Math.floor(i / COLS)), p.secondary, 10, 160);
+          for (const i of e.cells as number[]) kit.fx.burst(cx(i % COLS), cy(Math.floor(i / COLS)), rival, 10, 160);
         } else if (e.t === "won") {
           for (let i = 0; i < 8; i++) kit.fx.burst(Math.random() * W, H * 0.45, p.bricks[i % p.bricks.length], 14, 240);
         }
@@ -152,9 +153,9 @@ export default function createRenderer(canvas: HTMLCanvasElement, theme: ThemePa
       const by = 118 + bob;
       ctx.save();
       ctx.translate(bx, by);
-      ring(ctx, -16, -18, 8, p.secondary, p.ink);
-      ring(ctx, 16, -18, 8, p.secondary, p.ink);
-      ring(ctx, 0, 0, 26, p.secondary, p.ink);
+      ring(ctx, -16, -18, 8, rival, p.ink);
+      ring(ctx, 16, -18, 8, rival, p.ink);
+      ring(ctx, 0, 0, 26, rival, p.ink);
       bearFace(ctx, 0, 2, 1.25, p.ink, bearWon ? "smug" : bearLost ? "sad" : "grump");
       ctx.restore();
       kit.text(`BEAR LV${v.level}`, 52, 160, 10, p.text);
@@ -297,7 +298,7 @@ export default function createRenderer(canvas: HTMLCanvasElement, theme: ThemePa
       // --- Bottom status ---
       const sy = BOARD_Y + bh + 40;
       if (v.phase === "turn") kit.text(v.yourMoves === 0 ? "TAP A COLUMN TO DROP" : "YOUR MOVE", W / 2, sy, 14, p.primary);
-      else if (v.phase === "think") kit.text("BEAR IS THINKING", W / 2, sy, 14, p.secondary);
+      else if (v.phase === "think") kit.text("BEAR IS THINKING", W / 2, sy, 14, rival);
       kit.text(`SCORE ${v.score}`, W / 2, sy + 30, 12, p.text);
       if (v.phase === "turn" && v.yourMoves < 21) {
         const bonus = Math.max(0, 21 - v.yourMoves) * 50;
@@ -322,7 +323,7 @@ export default function createRenderer(canvas: HTMLCanvasElement, theme: ThemePa
       } else if (v.phase === "end" && v.phaseT > 40) {
         const a = Math.min(1, (v.phaseT - 40) / 12);
         if (v.outcome === "win") banner("YOU WIN!", v.level >= RUNGS ? "TOP RUNG BEATEN" : "NEXT BEAR IS SHARPER", p.primary, a);
-        else if (v.outcome === "lose") banner("BEAR WINS", "RUN OVER", p.secondary, a);
+        else if (v.outcome === "lose") banner("BEAR WINS", "RUN OVER", rival, a);
         else banner("DRAW", "REPLAY THIS RUNG", p.text, a);
       } else if (v.phase === "over") {
         banner(v.runWon ? "LADDER CLEARED!" : "GAME OVER", `${v.wins} WIN${v.wins === 1 ? "" : "S"}`, v.runWon ? p.accent : p.text);

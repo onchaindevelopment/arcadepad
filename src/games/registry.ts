@@ -48,8 +48,17 @@ import { four } from "./four/index.ts";
 import { trails } from "./trails/index.ts";
 import { swarm } from "./swarm/index.ts";
 import { bomber } from "./bomber/index.ts";
+import { pins } from "./pins/index.ts";
+import { crawler } from "./crawler/index.ts";
+import { checkers } from "./checkers/index.ts";
+import { hex } from "./hex/index.ts";
+import { echo } from "./echo/index.ts";
+import { tanks } from "./tanks/index.ts";
+import { digger } from "./digger/index.ts";
+import { crates } from "./crates/index.ts";
+import { quest } from "./quest/index.ts";
 
-export const GAMES: GameDef<never>[] = [breakout, pinball, slope, match3, racer, sling, lanes, helix, putt, runner, blocks, gridfit, solitaire, maze, colorhop, invaders, towers, flap, pulse, hoops, jumper, hopper, hill, slice, blob, turf, puck, snake, rocks, chain, bubbles, tiles, sweeper, barrage, cave, target, duel, stack, merge, lander, defense, bridge, beat, whack, four, trails, swarm, bomber] as unknown as GameDef<never>[];
+export const GAMES: GameDef<never>[] = [breakout, pinball, slope, match3, racer, sling, lanes, helix, putt, runner, blocks, gridfit, solitaire, maze, colorhop, invaders, towers, flap, pulse, hoops, jumper, hopper, hill, slice, blob, turf, puck, snake, rocks, chain, bubbles, tiles, sweeper, barrage, cave, target, duel, stack, merge, lander, defense, bridge, beat, whack, four, trails, swarm, bomber, pins, crawler, checkers, hex, echo, tanks, digger, crates, quest] as unknown as GameDef<never>[];
 
 export function getGame(id: string): GameDef<unknown> | undefined {
   return GAMES.find((g) => g.id === id) as GameDef<unknown> | undefined;

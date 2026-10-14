@@ -21,11 +21,34 @@ export interface Kit {
   block(x: number, y: number, w: number, h: number, color: string, radius?: number): void;
 }
 
+/**
+ * A negative (or NaN) radius makes arc()/ellipse()/roundRect() throw, which would kill the
+ * game loop mid-run. Clamp it on this context instead, so a shrinking effect can't crash a game.
+ */
+function guardShapes(ctx: CanvasRenderingContext2D) {
+  const g = ctx as CanvasRenderingContext2D & { __guarded?: boolean };
+  if (g.__guarded) return;
+  g.__guarded = true;
+  const ok = (r: number) => (r > 0 ? r : 0);
+  const arc = ctx.arc.bind(ctx);
+  ctx.arc = (x, y, r, a0, a1, ccw) => arc(x, y, ok(r), a0, a1, ccw);
+  const ellipse = ctx.ellipse.bind(ctx);
+  ctx.ellipse = (x, y, rx, ry, rot, a0, a1, ccw) => ellipse(x, y, ok(rx), ok(ry), rot, a0, a1, ccw);
+  const arcTo = ctx.arcTo.bind(ctx);
+  ctx.arcTo = (x1, y1, x2, y2, r) => arcTo(x1, y1, x2, y2, ok(r));
+  if (ctx.roundRect) {
+    const rr = ctx.roundRect.bind(ctx);
+    ctx.roundRect = (x, y, w, h, radii) =>
+      rr(x, y, w, h, typeof radii === "number" ? ok(radii) : Array.isArray(radii) ? radii.map((v) => (typeof v === "number" ? ok(v) : v)) : radii);
+  }
+}
+
 /** Prepare a canvas for a w x h field. Call once per renderer. */
 export function makeKit(canvas: HTMLCanvasElement, theme: ThemePack, w: number, h: number): Kit {
   canvas.width = w * RENDER_SCALE;
   canvas.height = h * RENDER_SCALE;
   const ctx = canvas.getContext("2d")!;
+  guardShapes(ctx);
   ctx.setTransform(RENDER_SCALE, 0, 0, RENDER_SCALE, 0, 0);
   ctx.imageSmoothingEnabled = false;
   const silk = getComputedStyle(document.documentElement).getPropertyValue("--font-silk").trim();
@@ -181,4 +204,25 @@ export class Fx {
       this.flashA = Math.max(0, this.flashA - dtMs / 400);
     }
   }
+}
+
+/**
+ * A colour for the CPU opponent's pieces that stays distinct from the player's pieces
+ * (primary) and from the mascot drawn on them. Prefers `secondary`, else the theme colour
+ * furthest from both.
+ */
+export function rivalColor(theme: ThemePack): string {
+  const p = theme.palette;
+  const rgb = (h: string) => {
+    const n = parseInt(h.replace("#", "").slice(0, 6), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  };
+  const dist = (a: string, b: string) => {
+    const [r1, g1, b1] = rgb(a), [r2, g2, b2] = rgb(b);
+    return Math.hypot(r1 - r2, g1 - g2, b1 - b2);
+  };
+  const avoid = [p.primary, theme.pixels?.a].filter((c): c is string => typeof c === "string" && c.startsWith("#"));
+  const score = (c: string) => Math.min(...avoid.map((a) => dist(a, c)));
+  if (score(p.secondary) >= 140) return p.secondary;
+  return [p.secondary, p.accent, ...(p.bricks ?? [])].reduce((best, c) => (score(c) > score(best) ? c : best), p.secondary);
 }
