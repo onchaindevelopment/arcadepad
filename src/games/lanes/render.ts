@@ -148,16 +148,15 @@ export default function createRenderer(canvas: HTMLCanvasElement, theme: ThemePa
       const even = Math.floor(z / band) % 2 === 0;
       poly([[ax, ay], [bx, ay], [cx, cy], [dx, cy]], even ? p.bg2 : shade(p.bg2, 0.08), false);
     }
-    // Road edges and dashed lane lines.
+    // Road edges: thin curb strips in world space, so they narrow with distance
+    // exactly like the road and obstacles (a fixed-width line covered the far road).
     ctx.lineCap = "round";
+    const curb = 0.09;
     for (const side of [-1, 1]) {
-      const [nx, ny, ns] = P(side * ROAD_HALF, 0, camZ + NEAR), [fx, fy] = P(side * ROAD_HALF, 0, camZ + FAR);
-      ctx.strokeStyle = p.primary;
-      ctx.lineWidth = Math.max(1, ns * 0.06);
-      ctx.beginPath();
-      ctx.moveTo(nx, ny);
-      ctx.lineTo(fx, fy);
-      ctx.stroke();
+      const inner = side * ROAD_HALF, outer = side * (ROAD_HALF + curb);
+      const [ax, ay] = P(inner, 0, camZ + NEAR), [bx] = P(outer, 0, camZ + NEAR);
+      const [cx, cy] = P(outer, 0, camZ + FAR), [dx] = P(inner, 0, camZ + FAR);
+      poly([[ax, ay], [bx, ay], [cx, cy], [dx, cy]], p.primary, false);
     }
     ctx.strokeStyle = p.text;
     ctx.globalAlpha = 0.35;
