@@ -4,8 +4,8 @@ import { THEMES } from "@/themes";
 import { MascotStatic } from "@/components/Mascot";
 
 export const metadata: Metadata = {
-  title: "Order a game for your coin",
-  description: "Tell us about your coin and mascot. We port an open-source classic and re-skin it for your community.",
+  title: "Commission a custom game",
+  description: "Want a game that isn't in the arcade yet? Tell us about it. Launching your coin's arcade is instant on the Launchpad.",
 };
 
 const STEPS = [
@@ -19,14 +19,14 @@ export default function OrderPage() {
     <div className="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
       <div className="grid items-end gap-8 md:grid-cols-[1.4fr_1fr]">
         <div>
-          <p className="kicker">Order a game</p>
+          <p className="kicker">Custom game</p>
           <h1 className="mt-4 text-[clamp(2.4rem,6vw,4.6rem)] font-semibold leading-[0.98] tracking-[-0.04em]">
-            Give your coin
+            Commission a
             <br />
-            <span className="neon-text">something to play.</span>
+            <span className="neon-text">brand-new game.</span>
           </h1>
           <p className="mt-5 max-w-xl text-lg text-soft">
-            Your request is saved with us. Nothing is charged and no wallet is needed. We reply on the contact you leave.
+            Want a game that isn&apos;t in the arcade yet? Tell us about it. To put your coin on the arcade you don&apos;t need to ask: <a href="/create" className="font-semibold text-sun underline underline-offset-4">use the Launchpad</a>, it&apos;s instant.
           </p>
         </div>
         <div className="hidden justify-end gap-3 md:flex" aria-hidden>

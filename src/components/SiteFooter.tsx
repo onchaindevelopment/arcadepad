@@ -12,7 +12,7 @@ export function SiteFooter() {
         <p className="mt-3 font-[family-name:var(--font-ui)] text-xl text-sun">Continue?</p>
         <div className="mt-6 flex flex-wrap justify-center gap-4">
           <Link href="/create" className="btn">
-            Yes · Launch your arcade
+            Yes · Launchpad
           </Link>
           <a href="#main" className="btn btn-plain">
             Back to the top ▲
@@ -29,8 +29,8 @@ export function SiteFooter() {
           <span className="kicker mb-1">Play</span>
           <Link href="/#games" className="text-soft hover:text-sun">Games</Link>
           <Link href="/leaderboard" className="text-soft hover:text-sun">Leaderboard</Link>
-          <Link href="/create" className="text-soft hover:text-sun">Launch your arcade</Link>
-          <Link href="/order" className="text-soft hover:text-sun">Order a custom game</Link>
+          <Link href="/create" className="text-soft hover:text-sun">Launchpad</Link>
+          <Link href="/order" className="text-soft hover:text-sun">Commission a custom game</Link>
         </nav>
         <nav aria-label="Legal" className="grid content-start gap-2.5 text-[0.95rem]">
           <span className="kicker mb-1">Open source</span>

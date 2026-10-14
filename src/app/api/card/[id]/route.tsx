@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { BRAND } from "@/brand";
-import { getTheme } from "@/themes";
+import { resolveTheme } from "@/lib/arcades";
 import { getGame, gameTitle } from "@/games/registry";
 import { store } from "@/lib/store";
 import { shortAddress } from "@/lib/session";
@@ -41,7 +41,7 @@ function Pixels({ grid, colors, px }: { grid: Grid; colors: Record<string, strin
 export async function GET(req: Request, ctx: RouteContext<"/api/card/[id]">) {
   const { id } = await ctx.params;
   const s = await store.getScore(id);
-  const theme = s && getTheme(s.theme);
+  const theme = s ? await resolveTheme(s.theme) : undefined;
   if (!s || !theme) return new Response("Not found", { status: 404 });
 
   const game = getGame(s.game ?? "breakout");

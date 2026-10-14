@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getTheme } from "@/themes";
+import { resolveTheme } from "@/lib/arcades";
 import { getGame } from "@/games/registry";
 import { getSession } from "@/lib/session";
 import { store } from "@/lib/store";
@@ -9,7 +9,7 @@ import { randomId, randomSeed } from "@/lib/tokens";
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => null)) as { game?: string; theme?: string } | null;
   const game = getGame(body?.game ?? "breakout");
-  const theme = body?.theme && getTheme(body.theme);
+  const theme = body?.theme ? await resolveTheme(body.theme) : undefined;
   if (!game || !theme) return NextResponse.json({ error: "Unknown game or skin." }, { status: 400 });
 
   const s = await getSession();

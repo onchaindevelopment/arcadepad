@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
-import { getTheme } from "@/themes";
+import { resolveTheme } from "@/lib/arcades";
 import { getGame, gameTitle } from "@/games/registry";
 import { store } from "@/lib/store";
 import { shortAddress } from "@/lib/session";
@@ -11,7 +11,7 @@ import { shortAddress } from "@/lib/session";
 async function load(id: string) {
   await connection();
   const s = await store.getScore(id);
-  const theme = s && getTheme(s.theme);
+  const theme = s ? await resolveTheme(s.theme) : undefined;
   const game = s && getGame(s.game ?? "breakout");
   return s && theme && game ? { s, theme, game, title: gameTitle(game, theme) } : null;
 }

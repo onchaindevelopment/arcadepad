@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { THEMES } from "@/themes";
+import { THEMES, type ThemePack } from "@/themes";
 import { CATEGORIES, type Category } from "@/games/categories";
 import { siteSound } from "@/lib/site-sound";
 import { GameThumb } from "./GameThumb";
@@ -15,7 +15,8 @@ const GRID_THEMES = THEMES.filter((t) => t.id !== "nubbin");
 // Cartridge shell colours: soft retro plastics.
 const SHELLS = ["#6f5aa8", "#4f8a8b", "#a0587a", "#6a7a3c", "#4d6aa8", "#a8703c", "#7a4fa0", "#3f8a64"];
 
-export function GameGrid({ games }: { games: GridGame[] }) {
+/** `theme` pins every cartridge to one skin (a launched coin's arcade). */
+export function GameGrid({ games, theme }: { games: GridGame[]; theme?: ThemePack }) {
   const [cat, setCat] = useState<Category | "All">("All");
   const listRef = useRef<HTMLUListElement>(null);
   const counts = useMemo(() => Object.fromEntries(CATEGORIES.map((c) => [c, games.filter((g) => g.category === c).length])), [games]);
@@ -49,7 +50,7 @@ export function GameGrid({ games }: { games: GridGame[] }) {
       <ul ref={listRef} onKeyDown={onKey} className="mt-7 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
         {shown.map((g) => {
           const idx = games.indexOf(g);
-          const t = GRID_THEMES[idx % GRID_THEMES.length];
+          const t = theme ?? GRID_THEMES[idx % GRID_THEMES.length];
           const shell = SHELLS[idx % SHELLS.length];
           return (
             <li key={g.id} className="min-w-0">
@@ -87,7 +88,7 @@ export function GameGrid({ games }: { games: GridGame[] }) {
                   </Link>
                 </div>
                 {/* Other skins */}
-                <div className="relative z-10 flex items-center gap-1.5 px-3 pb-2" aria-label="Play in another skin">
+                {!theme && <div className="relative z-10 flex items-center gap-1.5 px-3 pb-2" aria-label="Play in another skin">
                   {THEMES.map((o) => (
                     <Link
                       key={o.id}
@@ -100,7 +101,7 @@ export function GameGrid({ games }: { games: GridGame[] }) {
                       <span className="sr-only">{`Play ${g.name} as $${o.coin.ticker}`}</span>
                     </Link>
                   ))}
-                </div>
+                </div>}
                 <div className="cart-grip mx-6 mb-1.5 mt-auto h-2" aria-hidden />
               </article>
             </li>

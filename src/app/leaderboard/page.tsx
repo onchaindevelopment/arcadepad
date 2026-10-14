@@ -7,6 +7,7 @@ import { GAMES, gameTitle, getGame } from "@/games/registry";
 import { store } from "@/lib/store";
 import { shortAddress } from "@/lib/session";
 import { MascotStatic } from "@/components/Mascot";
+import { resolveTheme } from "@/lib/arcades";
 import { GameSelectNav } from "@/components/GameSelect";
 
 export const metadata: Metadata = {
@@ -25,8 +26,10 @@ export default function LeaderboardPage(props: PageProps<"/leaderboard">) {
 async function Board({ searchParams }: { searchParams: PageProps<"/leaderboard">["searchParams"] }) {
   await connection();
   const sp = await searchParams;
-  const active = typeof sp.coin === "string" && getTheme(sp.coin) ? sp.coin : THEMES[0].id;
-  const theme = getTheme(active)!;
+  const coin = typeof sp.coin === "string" ? sp.coin : "";
+  const theme = (coin && (getTheme(coin) ?? (await resolveTheme(coin)))) || THEMES[0];
+  const active = theme.id;
+  const coins = THEMES.some((t) => t.id === active) ? THEMES : [...THEMES, theme];
   const game = (typeof sp.game === "string" && getGame(sp.game)) || GAMES[0];
   const rows = await store.leaderboard(game.id, active, 50);
   const p = theme.palette;
@@ -42,7 +45,7 @@ async function Board({ searchParams }: { searchParams: PageProps<"/leaderboard">
       </div>
 
       <nav aria-label="Choose a coin" className="mt-3 flex flex-wrap gap-2">
-        {THEMES.map((t) => (
+        {coins.map((t) => (
           <Link
             key={t.id}
             href={`/leaderboard?game=${game.id}&coin=${t.id}`}

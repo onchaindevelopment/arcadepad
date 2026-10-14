@@ -7,6 +7,8 @@ import { HowItWorks } from "@/components/HowItWorks";
 import { CountUp } from "@/components/CountUp";
 import { TitleMenu } from "@/components/TitleMenu";
 import { InsertCoin } from "@/components/InsertCoin";
+import { JustLaunched } from "@/components/JustLaunched";
+import { Suspense } from "react";
 import { GAMES } from "@/games/registry";
 import { CATEGORIES, categoryOf } from "@/games/categories";
 
@@ -44,7 +46,7 @@ export default function Home() {
     <>
       <InsertCoin />
       {/* Hero: pinball backglass */}
-      <section className="relative -mt-[64px] flex min-h-[100svh] flex-col overflow-hidden px-4 pb-0 pt-[96px] sm:-mt-[68px] sm:pt-[110px]">
+      <section className="relative -mt-[76px] flex min-h-[100svh] flex-col overflow-hidden px-4 pb-0 pt-[96px] sm:-mt-[80px] sm:pt-[110px]">
         <div className="sunburst pointer-events-none absolute left-1/2 top-[42%] h-[160vmax] w-[160vmax] -translate-x-1/2 -translate-y-1/2" aria-hidden />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(to_top,var(--bg),transparent)]" aria-hidden />
         {BUMPERS.map((b) => (
@@ -95,6 +97,20 @@ export default function Home() {
           ))}
         </div>
       </div>
+
+      {/* Just launched */}
+      <section id="launched" className="mx-auto max-w-6xl scroll-mt-20 px-4 pt-24 sm:px-6">
+        <p className="kicker">Launchpad · Just launched</p>
+        <div className="mt-5 flex flex-wrap items-end justify-between gap-x-10 gap-y-4">
+          <h2 className="text-[clamp(2.2rem,5.4vw,4.2rem)]">New arcades</h2>
+          <Link href="/create" className="btn btn-hot">
+            Launchpad
+          </Link>
+        </div>
+        <Suspense fallback={<div className="mt-10 h-24" />}>
+          <JustLaunched />
+        </Suspense>
+      </section>
 
       {/* How it works */}
       <section id="how" className="mx-auto max-w-6xl scroll-mt-20 px-4 pt-28 sm:px-6">
@@ -212,10 +228,10 @@ export default function Home() {
           <p className="mx-auto mt-7 max-w-md leading-relaxed text-soft">Your mascot, your colours and a leaderboard your community will fight over. No wagering, no entry fees, no token rewards.</p>
           <div className="mt-9 flex flex-wrap justify-center gap-4">
             <Link href="/create" className="btn px-7 py-3.5 text-base">
-              Launch your arcade
+              Launchpad
             </Link>
-            <Link href="/order" className="btn btn-hot px-7 py-3.5 text-base">
-              Order a game
+            <Link href="#games" className="btn btn-hot px-7 py-3.5 text-base">
+              Play the arcade
             </Link>
           </div>
           <p className="pixel blink mt-12 text-sm uppercase tracking-[0.3em] text-sun">Press start</p>

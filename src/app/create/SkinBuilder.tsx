@@ -6,6 +6,8 @@ import { SOUND_STYLES, buildTheme, dominantColors, pixelateImage, sanitizeTicker
 import { gridToSvg } from "@/themes/pixel";
 import { GameHost } from "@/components/GameHost";
 import { GameSelect } from "@/components/GameSelect";
+import { WalletButton, useWallet } from "@/components/WalletButton";
+import { useRouter } from "next/navigation";
 
 const STARTERS = THEMES.map((t) => ({ id: t.id, label: t.mascot.name, grid: t.mascot.idle, pixels: t.pixels }));
 
@@ -33,10 +35,10 @@ export function SkinBuilder({ games }: { games: GameMeta[] }) {
   const [input, setInput] = useState<SkinInput>(DEFAULT);
   const [gameId, setGameId] = useState(games[0]?.id ?? "breakout");
   const [imgError, setImgError] = useState<string | null>(null);
-  const [contact, setContact] = useState("");
-  const [notes, setNotes] = useState("");
   const [rights, setRights] = useState(false);
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [wallet] = useWallet();
+  const router = useRouter();
   const [msg, setMsg] = useState("");
 
   const debounced = useDebounced(input, 450);
@@ -71,30 +73,19 @@ export function SkinBuilder({ games }: { games: GameMeta[] }) {
     setState("sending");
     setMsg("");
     try {
-      const t = buildTheme(input);
-      const r = await fetch("/api/orders", {
+      const r = await fetch("/api/arcades", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          coinName: t.coin.name,
-          ticker: t.coin.ticker,
-          chain: t.coin.chain,
-          game: "All games (self-serve skin)",
-          mascot: "Pixel mascot attached (built in the skin builder)",
-          colors: `${input.colors.primary}, ${input.colors.secondary}, ${input.colors.accent} on ${input.colors.bg}`,
-          contact,
-          notes,
-          rightsConfirmed: rights,
-          skin: JSON.stringify(t),
-        }),
+        body: JSON.stringify({ ...input, confirm: rights }),
       });
       const d = await r.json();
-      if (!r.ok) throw new Error(d.error ?? "Could not send.");
+      if (!r.ok) throw new Error(d.error ?? "Could not launch.");
       setState("sent");
-      setMsg(`Skin ${d.id} received. We'll get back to you on ${contact}.`);
+      setMsg("Live! Taking you to your arcade…");
+      router.push(d.url);
     } catch (err) {
       setState("error");
-      setMsg(err instanceof Error ? err.message : "Could not send.");
+      setMsg(err instanceof Error ? err.message : "Could not launch.");
     }
   }
 
@@ -209,26 +200,37 @@ export function SkinBuilder({ games }: { games: GameMeta[] }) {
           <GameHost key={`${meta.id}-${themeKey}`} meta={meta} theme={theme} title={`${theme.coin.name} ${meta.name}`} practice />
         </div>
 
-        <form onSubmit={submit} className="slab grid gap-4 p-5 sm:p-6">
-          <h2 className="text-xl font-semibold">4. Put it live</h2>
-          <p className="text-soft">We check the skin, turn on leaderboards for it and send you your coin&apos;s arcade link. Nothing is charged here.</p>
-          <div className="grid gap-1.5">
-            {L("contact", "How do we reach you?", "(Telegram, X or email)")}
-            <input id={`${id}-contact`} className="field" required maxLength={120} value={contact} onChange={(e) => setContact(e.target.value)} placeholder="@yourhandle" />
-          </div>
-          <div className="grid gap-1.5">
-            {L("notes", "Anything else?", "(links, which games matter most)")}
-            <textarea id={`${id}-notes`} className="field min-h-20" maxLength={2000} value={notes} onChange={(e) => setNotes(e.target.value)} />
-          </div>
+        <form onSubmit={submit} className="slab grid gap-4 p-5 sm:p-6" style={{ boxShadow: "0 0 0 2px rgba(255,210,61,0.45), 0 20px 50px -20px rgba(255,46,136,0.5)" }}>
+          <h2 className="text-2xl">4. Launch</h2>
+          <p className="text-soft">
+            Your arcade goes live instantly at <span className="font-mono text-white">arcadepad.games/a/{sanitizeTickerInput(input.ticker).toLowerCase()}</span> with all {games.length} games and its own leaderboards. Free, no
+            request, no waiting.
+          </p>
+          {!wallet.address ? (
+            <div className="grid gap-2 rounded-2xl border border-hairline bg-ink/50 p-4">
+              <p className="font-semibold">Sign in with your wallet to launch.</p>
+              <p className="text-sm text-soft">You sign one message. No transaction, no fees.</p>
+              <div>
+                <WalletButton />
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-soft">
+              Launching as <span className="font-mono text-white">{wallet.address.slice(0, 4)}…{wallet.address.slice(-4)}</span>
+            </p>
+          )}
           <label className="flex items-start gap-3">
-            <input type="checkbox" className="mt-1 h-5 w-5 accent-[var(--grape)]" checked={rights} onChange={(e) => setRights(e.target.checked)} required />
-            <span>I own this coin&apos;s mascot and branding, or have written permission to use them, and I understand scores can&apos;t be tied to prizes or token rewards.</span>
+            <input type="checkbox" className="mt-1 h-5 w-5 shrink-0 accent-[var(--sun)]" checked={rights} onChange={(e) => setRights(e.target.checked)} required />
+            <span className="text-sm leading-relaxed">
+              I have the right to use this mascot and name, I won&apos;t use the arcade to impersonate anyone or promote scams, and I understand scores can&apos;t be tied to prizes or token
+              rewards. Arcades that break these rules are removed.
+            </span>
           </label>
           <div className="flex flex-wrap items-center gap-4">
-            <button className="btn btn-hot" disabled={state === "sending" || state === "sent"}>
-              {state === "sending" ? "Sending…" : state === "sent" ? "Sent ✓" : "Send my skin"}
+            <button className="btn btn-hot px-7 py-3.5 text-base" disabled={!wallet.address || state === "sending" || state === "sent"}>
+              {state === "sending" ? "Launching…" : state === "sent" ? "Live ✓" : "🚀 Launch now"}
             </button>
-            <p role="status" className={`font-semibold ${state === "error" ? "text-hot" : ""}`}>
+            <p role="status" className={`font-semibold ${state === "error" ? "text-hot" : "text-mint"}`}>
               {msg}
             </p>
           </div>

@@ -1,7 +1,7 @@
 // Postgres backend for the store (Neon serverless driver over HTTP).
 import "server-only";
 import { neon } from "@neondatabase/serverless";
-import type { OrderRecord, RunRecord, ScoreRecord, Store } from "./store";
+import type { ArcadeRecord, OrderRecord, RunRecord, ScoreRecord, Store } from "./store";
 
 const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS runs (
@@ -17,6 +17,10 @@ const SCHEMA = [
   `ALTER TABLE runs ADD COLUMN IF NOT EXISTS game text NOT NULL DEFAULT 'breakout'`,
   `ALTER TABLE scores ADD COLUMN IF NOT EXISTS game text NOT NULL DEFAULT 'breakout'`,
   `CREATE INDEX IF NOT EXISTS scores_game_board ON scores (game, theme, wallet, score DESC, created_at)`,
+  `CREATE TABLE IF NOT EXISTS arcades (slug text PRIMARY KEY, owner text NOT NULL, chain text NOT NULL, created_at bigint NOT NULL, hidden boolean NOT NULL DEFAULT false, theme jsonb NOT NULL)`,
+  `CREATE INDEX IF NOT EXISTS arcades_owner ON arcades (owner, created_at)`,
+  `CREATE INDEX IF NOT EXISTS arcades_new ON arcades (hidden, created_at DESC)`,
+  `CREATE TABLE IF NOT EXISTS arcade_reports (slug text NOT NULL, reporter text NOT NULL, created_at bigint NOT NULL, PRIMARY KEY (slug, reporter))`,
 ];
 
 type Row = Record<string, unknown>;
@@ -30,6 +34,15 @@ const toRun = (r: Row): RunRecord => ({
   chain: (r.chain as string) ?? null,
   startedAt: Number(r.started_at),
   submittedAt: r.submitted_at == null ? undefined : Number(r.submitted_at),
+});
+
+const toArcade = (r: Row): ArcadeRecord => ({
+  slug: String(r.slug),
+  owner: String(r.owner),
+  chain: String(r.chain),
+  createdAt: Number(r.created_at),
+  hidden: Boolean(r.hidden),
+  theme: typeof r.theme === "string" ? r.theme : JSON.stringify(r.theme),
 });
 
 const toScore = (r: Row): ScoreRecord => ({
@@ -118,6 +131,43 @@ export function pgStore(url: string): Store {
       await schema();
       const { id, createdAt, ...data } = o;
       await sql`INSERT INTO orders (id, created_at, data) VALUES (${id}, ${createdAt}, ${JSON.stringify(data)}::jsonb)`;
+    },
+    async createArcade(a: ArcadeRecord) {
+      await schema();
+      const rows = await sql`INSERT INTO arcades (slug, owner, chain, created_at, hidden, theme)
+                VALUES (${a.slug}, ${a.owner}, ${a.chain}, ${a.createdAt}, ${a.hidden}, ${a.theme}::jsonb)
+                ON CONFLICT (slug) DO NOTHING RETURNING slug`;
+      return rows.length === 1;
+    },
+    async getArcade(slug: string) {
+      await schema();
+      const rows = await sql`SELECT * FROM arcades WHERE slug = ${slug}`;
+      return rows[0] ? toArcade(rows[0]) : undefined;
+    },
+    async listArcades(limit = 24) {
+      await schema();
+      const rows = await sql`SELECT * FROM arcades WHERE hidden = false ORDER BY created_at DESC LIMIT ${limit}`;
+      return rows.map(toArcade);
+    },
+    async countArcadesBy(owner: string, since: number) {
+      await schema();
+      const rows = await sql`SELECT count(*)::int AS n FROM arcades WHERE owner = ${owner} AND created_at >= ${since}`;
+      return Number(rows[0].n);
+    },
+    async reportArcade(slug: string, reporter: string) {
+      await schema();
+      await sql`INSERT INTO arcade_reports (slug, reporter, created_at) VALUES (${slug}, ${reporter}, ${Date.now()}) ON CONFLICT DO NOTHING`;
+      const rows = await sql`SELECT count(*)::int AS n FROM arcade_reports WHERE slug = ${slug}`;
+      return Number(rows[0].n);
+    },
+    async setArcadeHidden(slug: string, hidden: boolean) {
+      await schema();
+      await sql`UPDATE arcades SET hidden = ${hidden} WHERE slug = ${slug}`;
+    },
+    async deleteArcade(slug: string) {
+      await schema();
+      await sql`DELETE FROM arcade_reports WHERE slug = ${slug}`;
+      await sql`DELETE FROM arcades WHERE slug = ${slug}`;
     },
   };
 }

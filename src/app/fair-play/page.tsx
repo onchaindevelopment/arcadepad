@@ -23,11 +23,20 @@ const SECTIONS = [
     ],
   },
   {
+    h: "Community launches",
+    p: [
+      "Anyone signed in with a wallet can launch a coin's arcade on the Launchpad, and it goes live at once. Launched arcades are made by their creators, not by ArcadePad, and are not affiliated with or endorsed by the coin's team unless we say so.",
+      "Launches must not impersonate anyone, promote scams, or tie scores to prizes or token rewards. Every arcade has a Report button; arcades with several reports are hidden until we review them, and arcades that break the rules are removed.",
+    ],
+  },
+  {
     h: "What we store",
     p: [
       "For signed-in runs: your public wallet address, your scores, and the recorded inputs of each run. Guest runs are stored without an address and don't appear on leaderboards.",
       "One cookie keeps you signed in. There are no ads or tracking cookies.",
-      "Order requests: what you type into the form, to answer you. Nothing else.",
+      "Launched arcades: the skin you built (name, ticker, chain, pixel mascot, colours) and the wallet that launched it, shown publicly in short form.",
+      "Reports: which arcade was reported, and either your wallet or a one-way hash of your IP and browser, so one person can only report once.",
+      "Custom game requests: what you type into the form, to answer you. Nothing else.",
     ],
   },
 ];

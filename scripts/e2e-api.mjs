@@ -86,6 +86,38 @@ check("score card renders PNG", card.status === 200 && card.headers.get("content
 const lb = await api("/api/leaderboard?game=breakout&theme=glorp");
 check("leaderboard lists the run", lb.data.rows.some((r) => r.id === honest.data.scoreId));
 
+// 5. Instant launch: a signed-in wallet launches a coin arcade, which is live at once
+const ticker = "T" + Math.random().toString(36).slice(2, 7).toUpperCase().replace(/[^A-Z0-9]/g, "X");
+const grid = Array.from({ length: 16 }, (_, y) => (y > 3 && y < 12 ? "....aaaaaaaa...." : "................"));
+const launchBody = {
+  name: "E2E Test Coin",
+  ticker,
+  chain: "solana",
+  sound: "squishy",
+  dark: true,
+  colors: { bg: "#1B1446", primary: "#7CF0C8", secondary: "#FF7AB6", accent: "#FFD166" },
+  mascot: { grid, pixels: { a: "#7CF0C8" } },
+};
+check("launch needs the rules confirmed", (await api("/api/arcades", launchBody)).status === 400);
+const bad = await api("/api/arcades", { ...launchBody, colors: { ...launchBody.colors, bg: "red" }, confirm: true });
+check("bad launch input rejected", bad.status === 400, bad.data.error);
+const launch = await api("/api/arcades", { ...launchBody, confirm: true });
+check("arcade launched instantly", launch.status === 200 && /^\/a\/[a-z0-9-]+$/.test(launch.data.url ?? ""), launch.data.url ?? launch.data.error);
+const slug = launch.data.slug;
+console.log(`test arcade: ${slug}`);
+const page = await fetch(`${BASE}/a/${slug}`);
+check("arcade page is live", page.status === 200 && (await page.text()).includes(ticker));
+const play = await fetch(`${BASE}/play/snake/${slug}`);
+check("game page in the launched skin", play.status === 200);
+const ls = await api("/api/run/start", { game: "snake", theme: slug });
+const lsRun = bot("snake", ls.data.seed, 360, ticker);
+await sleep((lsRun.result.frames / 60) * 1000 + 300);
+const lsSub = await api("/api/run/submit", { runId: ls.data.runId, inputs: encodeInputs(lsRun.inputs), score: lsRun.result.score, frames: lsRun.result.frames });
+check("verified run in a launched arcade", lsSub.status === 200 && lsSub.data.score === lsRun.result.score, `score ${lsRun.result.score}`);
+check("report accepted", (await api(`/api/arcades/${slug}/report`, {})).status === 200);
+const signedOut = await fetch(`${BASE}/api/arcades`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...launchBody, confirm: true }) });
+check("launch without a wallet refused", signedOut.status === 401);
+
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll checks passed");
 console.log(`Share page: ${BASE}/s/${honest.data.scoreId}`);
 process.exit(failures ? 1 : 0);

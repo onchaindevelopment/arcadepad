@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getGame } from "@/games/registry";
 import { replayGame } from "@/games/core/replay";
 import { STEP_MS } from "@/games/core/types";
-import { getTheme } from "@/themes";
+import { resolveTheme } from "@/lib/arcades";
 import { getSession } from "@/lib/session";
 import { store } from "@/lib/store";
 import { randomId } from "@/lib/tokens";
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
   const run = await store.getRun(body.runId);
   if (!run) return NextResponse.json({ error: "Unknown run." }, { status: 404 });
-  const theme = getTheme(run.theme);
+  const theme = await resolveTheme(run.theme, true);
   const game = getGame(run.game ?? "breakout");
   if (!theme || !game) return NextResponse.json({ error: "Unknown game or skin." }, { status: 400 });
 

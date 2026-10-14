@@ -5,10 +5,10 @@ import { siteSound } from "@/lib/site-sound";
 
 const ITEMS = [
   { label: "Play arcade", href: "#games" },
-  { label: "Launch your arcade", href: "/create" },
+  { label: "Launchpad", href: "/create" },
   { label: "How it works", href: "#how" },
   { label: "Leaderboard", href: "/leaderboard" },
-  { label: "Order a game", href: "/order" },
+  { label: "New arcades", href: "#launched" },
 ];
 
 /**

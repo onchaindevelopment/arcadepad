@@ -9,8 +9,8 @@ import { SoundButton } from "./SiteAudio";
 const NAV = [
   { href: "/", label: "Arcade" },
   { href: "/leaderboard", label: "Leaderboard" },
-  { href: "/create", label: "Launch" },
-  { href: "/order", label: "Order" },
+  { href: "/create", label: "Launchpad" },
+  { href: "/#launched", label: "New" },
 ];
 
 function isActive(path: string, href: string) {
@@ -19,6 +19,14 @@ function isActive(path: string, href: string) {
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const on = () => setScrolled(window.scrollY > 12);
+    on();
+    window.addEventListener("scroll", on, { passive: true });
+    return () => window.removeEventListener("scroll", on);
+  }, []);
 
   useEffect(() => {
     document.body.classList.toggle("menu-open", open);
@@ -35,7 +43,7 @@ export function SiteHeader() {
   }, [open]);
 
   return (
-    <header className="sticky top-0 z-50 px-4 pt-3 sm:pt-4">
+    <header className={`sticky top-0 z-50 px-4 pb-3 pt-3 transition-[background-color,box-shadow,backdrop-filter] duration-300 sm:pt-4 ${scrolled ? "bg-[#12062a]/85 shadow-[0_1px_0_rgba(255,255,255,0.08),0_10px_30px_-12px_rgba(0,0,0,0.7)] backdrop-blur-md" : ""}`}>
       {open && <div className="overlay-in fixed inset-0 bg-black/65 backdrop-blur-md md:hidden" onClick={() => setOpen(false)} aria-hidden />}
       <div className="drop-in relative mx-auto flex max-w-6xl items-center justify-between gap-3 md:gap-5">
         <Link href="/" aria-label="ArcadePad home" className="group flex shrink-0 items-center gap-3 rounded-full">
