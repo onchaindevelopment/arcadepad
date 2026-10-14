@@ -72,7 +72,7 @@ export function OrderForm() {
 
   return (
     <form onSubmit={submit} className="slab grid gap-5 p-5 sm:p-7" aria-describedby={`${id}-status`}>
-      <h2 className="text-2xl font-extrabold">Tell us about your coin</h2>
+      <h2 className="text-2xl font-semibold">Tell us about your coin</h2>
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="grid gap-1.5">
           {L("coinName", "Coin name")}

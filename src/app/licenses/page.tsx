@@ -27,7 +27,7 @@ export default function LicensesPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 pt-12 sm:px-6">
       <span className="chip">Open source</span>
-      <h1 className="mt-4 text-[clamp(2.2rem,5vw,3.8rem)] font-extrabold leading-none tracking-tight">Licences &amp; source code</h1>
+      <h1 className="mt-4 text-[clamp(2.2rem,5vw,3.8rem)] font-semibold leading-none tracking-[-0.04em]">Licences &amp; source code</h1>
       <p className="mt-5 text-lg text-soft">
         {BRAND.name} only ports games whose code <em>and</em> assets carry open licences that allow commercial use and modification, or games we have written permission for.
         We never use trademarked game names or characters.
@@ -36,11 +36,11 @@ export default function LicensesPage() {
       <div className="slab mt-10 overflow-hidden">
         <table className="w-full text-left text-[0.95rem]">
           <caption className="sr-only">Components and their licences</caption>
-          <thead className="bg-paper-2">
+          <thead className="bg-white/[0.03] text-sm">
             <tr>
               <th scope="col" className="p-4">Component</th>
               <th scope="col" className="hidden p-4 md:table-cell">Authors</th>
-              <th scope="col" className="p-4">Licence</th>
+              <th scope="col" className="w-48 p-4">Licence</th>
             </tr>
           </thead>
           <tbody>

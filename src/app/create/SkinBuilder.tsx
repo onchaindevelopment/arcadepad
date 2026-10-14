@@ -5,6 +5,7 @@ import { THEMES } from "@/themes";
 import { SOUND_STYLES, buildTheme, dominantColors, pixelateImage, sanitizeTickerInput, type SkinInput, type SoundStyle } from "@/themes/build";
 import { gridToSvg } from "@/themes/pixel";
 import { GameHost } from "@/components/GameHost";
+import { GameSelect } from "@/components/GameSelect";
 
 const STARTERS = THEMES.map((t) => ({ id: t.id, label: t.mascot.name, grid: t.mascot.idle, pixels: t.pixels }));
 
@@ -108,7 +109,7 @@ export function SkinBuilder({ games }: { games: GameMeta[] }) {
     <div className="mt-10 grid gap-8 lg:grid-cols-[22rem_1fr]">
       <div className="grid content-start gap-5">
         <section className="slab grid gap-4 p-5">
-          <h2 className="text-xl font-extrabold">1. Your coin</h2>
+          <h2 className="text-xl font-semibold">1. Your coin</h2>
           <div className="grid gap-1.5">
             {L("name", "Name")}
             <input id={`${id}-name`} className="field" maxLength={24} value={input.name} onChange={(e) => set("name", e.target.value)} />
@@ -130,7 +131,7 @@ export function SkinBuilder({ games }: { games: GameMeta[] }) {
         </section>
 
         <section className="slab grid gap-4 p-5">
-          <h2 className="text-xl font-extrabold">2. Your mascot</h2>
+          <h2 className="text-xl font-semibold">2. Your mascot</h2>
           <div className="flex items-center gap-4">
             <span
               className="grid h-24 w-24 shrink-0 place-items-center rounded-2xl border-2 border-line [&>svg]:h-20 [&>svg]:w-20"
@@ -162,7 +163,7 @@ export function SkinBuilder({ games }: { games: GameMeta[] }) {
         </section>
 
         <section className="slab grid gap-4 p-5">
-          <h2 className="text-xl font-extrabold">3. Colours &amp; sound</h2>
+          <h2 className="text-xl font-semibold">3. Colours &amp; sound</h2>
           <div className="grid grid-cols-2 gap-3">
             {(
               [
@@ -200,19 +201,16 @@ export function SkinBuilder({ games }: { games: GameMeta[] }) {
       </div>
 
       <div className="grid min-w-0 content-start gap-5">
-        <nav aria-label="Preview game" className="flex flex-wrap gap-2">
-          {games.map((g) => (
-            <button key={g.id} type="button" onClick={() => setGameId(g.id)} aria-pressed={g.id === gameId} className={`chip !text-[0.7rem] ${g.id === gameId ? "!bg-sun !text-[#1a1033]" : ""}`}>
-              {g.name}
-            </button>
-          ))}
-        </nav>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="kicker">Preview</span>
+          <GameSelect games={games} value={gameId} onChange={setGameId} label="Preview game" />
+        </div>
         <div className="slab h-[min(72dvh,640px)] min-h-[380px] overflow-hidden !p-0">
           <GameHost key={`${meta.id}-${themeKey}`} meta={meta} theme={theme} title={`${theme.coin.name} ${meta.name}`} practice />
         </div>
 
         <form onSubmit={submit} className="slab grid gap-4 p-5 sm:p-6">
-          <h2 className="text-xl font-extrabold">4. Put it live</h2>
+          <h2 className="text-xl font-semibold">4. Put it live</h2>
           <p className="text-soft">We check the skin, turn on leaderboards for it and send you your coin&apos;s arcade link. Nothing is charged here.</p>
           <div className="grid gap-1.5">
             {L("contact", "How do we reach you?", "(Telegram, X or email)")}

@@ -20,10 +20,10 @@ export default function OrderPage() {
       <div className="grid items-end gap-8 md:grid-cols-[1.4fr_1fr]">
         <div>
           <span className="chip">Order a game</span>
-          <h1 className="mt-4 text-[clamp(2.4rem,6vw,4.6rem)] font-extrabold leading-[0.95] tracking-tight">
+          <h1 className="mt-4 text-[clamp(2.4rem,6vw,4.6rem)] font-semibold leading-[0.98] tracking-[-0.04em]">
             Give your coin
             <br />
-            <span className="[box-decoration-break:clone] bg-[linear-gradient(transparent_64%,var(--highlight)_64%,var(--highlight)_90%,transparent_90%)] px-1">something to play.</span>
+            <span className="neon-text">something to play.</span>
           </h1>
           <p className="mt-5 max-w-xl text-lg text-soft">
             Your request is saved with us. Nothing is charged and no wallet is needed. We reply on the contact you leave.
@@ -31,8 +31,8 @@ export default function OrderPage() {
         </div>
         <div className="hidden justify-end gap-3 md:flex" aria-hidden>
           {THEMES.map((t, i) => (
-            <div key={t.id} className="slab floaty grid h-28 w-28 place-items-center" style={{ background: t.palette.primary, animationDelay: `${i * 0.6}s`, ["--r" as string]: `${(i - 1) * 6}deg` }}>
-              <MascotStatic theme={t} size={84} />
+            <div key={t.id} className="floaty grid h-24 w-24 place-items-center rounded-2xl border border-white/10" style={{ background: `${t.palette.ink}cc`, boxShadow: `0 0 36px -8px ${t.palette.primary}aa`, animationDelay: `${i * 0.6}s` }}>
+              <MascotStatic theme={t} size={72} />
             </div>
           ))}
         </div>

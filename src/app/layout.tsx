@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Silkscreen } from "next/font/google";
+import { Geist, Geist_Mono, Silkscreen } from "next/font/google";
 import { BRAND } from "@/brand";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import "./globals.css";
 
-const bricolage = Bricolage_Grotesque({ variable: "--font-bricolage", subsets: ["latin"], display: "swap" });
+const geist = Geist({ variable: "--font-geist", subsets: ["latin"], display: "swap" });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], display: "swap" });
 const silk = Silkscreen({ variable: "--font-silk", subsets: ["latin"], weight: ["400", "700"], display: "swap" });
 
 export const metadata: Metadata = {
@@ -18,15 +19,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fff6e9" },
-    { media: "(prefers-color-scheme: dark)", color: "#1b1036" },
-  ],
+  themeColor: "#07060d",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${bricolage.variable} ${silk.variable} h-full antialiased`}>
+    <html lang="en" className={`${geist.variable} ${geistMono.variable} ${silk.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 btn btn-sun">
           Skip to content

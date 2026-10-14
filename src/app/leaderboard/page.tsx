@@ -7,6 +7,7 @@ import { GAMES, gameTitle, getGame } from "@/games/registry";
 import { store } from "@/lib/store";
 import { shortAddress } from "@/lib/session";
 import { MascotStatic } from "@/components/Mascot";
+import { GameSelectNav } from "@/components/GameSelect";
 
 export const metadata: Metadata = {
   title: "Leaderboard",
@@ -33,18 +34,14 @@ async function Board({ searchParams }: { searchParams: PageProps<"/leaderboard">
   return (
     <div className="mx-auto max-w-5xl px-4 pt-12 sm:px-6">
       <span className="chip">Leaderboard</span>
-      <h1 className="mt-4 text-[clamp(2.2rem,5vw,3.8rem)] font-extrabold leading-none tracking-tight">Top runs</h1>
+      <h1 className="mt-4 text-[clamp(2.2rem,5vw,3.8rem)] font-semibold leading-none tracking-[-0.04em]">Top runs</h1>
       <p className="mt-4 max-w-2xl text-lg text-soft">Best score per wallet. Every score here was re-played by the server from the run&apos;s inputs. Bragging rights only.</p>
 
-      <nav aria-label="Choose a game" className="mt-8 flex flex-wrap gap-2">
-        {GAMES.map((g) => (
-          <Link key={g.id} href={`/leaderboard?game=${g.id}&coin=${active}`} aria-current={g.id === game.id ? "page" : undefined} className={`chip !text-[0.7rem] ${g.id === game.id ? "!bg-sun !text-[#1a1033]" : ""}`}>
-            {g.name}
-          </Link>
-        ))}
-      </nav>
+      <div className="mt-8 flex flex-wrap items-center gap-3">
+        <GameSelectNav games={GAMES.map((g) => ({ id: g.id, name: g.name }))} value={game.id} hrefFor={`/leaderboard?game=__GAME__&coin=${active}`} />
+      </div>
 
-      <nav aria-label="Choose a coin" className="mt-4 flex flex-wrap gap-3">
+      <nav aria-label="Choose a coin" className="mt-3 flex flex-wrap gap-2">
         {THEMES.map((t) => (
           <Link
             key={t.id}
@@ -58,8 +55,8 @@ async function Board({ searchParams }: { searchParams: PageProps<"/leaderboard">
         ))}
       </nav>
 
-      <div className="slab mt-6 overflow-hidden" style={{ background: p.bg, color: p.text }}>
-        <div className="flex items-center justify-between gap-4 p-5" style={{ background: p.bg2 }}>
+      <div className="slab mt-6 overflow-hidden">
+        <div className="flex items-center justify-between gap-4 border-b border-hairline p-5" style={{ background: `radial-gradient(120% 200% at 0% 0%, ${p.primary}30, transparent 60%)` }}>
           <div className="flex items-center gap-3">
             <MascotStatic theme={theme} size={48} />
             <div>
@@ -79,7 +76,7 @@ async function Board({ searchParams }: { searchParams: PageProps<"/leaderboard">
           <table className="w-full text-left">
             <caption className="sr-only">Top scores for ${theme.coin.ticker}</caption>
             <thead>
-              <tr className="pixel text-xs uppercase opacity-70">
+              <tr className="pixel text-[0.62rem] uppercase tracking-[0.12em] text-dim">
                 <th scope="col" className="px-5 py-3">#</th>
                 <th scope="col" className="px-5 py-3">Player</th>
                 <th scope="col" className="hidden px-5 py-3 sm:table-cell">Level</th>
@@ -88,7 +85,7 @@ async function Board({ searchParams }: { searchParams: PageProps<"/leaderboard">
             </thead>
             <tbody>
               {rows.map((r, i) => (
-                <tr key={r.id} className="border-t" style={{ borderColor: `${p.text}22` }}>
+                <tr key={r.id} className="border-t border-hairline transition-colors hover:bg-white/[0.02]">
                   <td className="px-5 py-3 font-bold" style={{ color: i < 3 ? p.accent : undefined }}>
                     {i + 1}
                   </td>
@@ -98,7 +95,7 @@ async function Board({ searchParams }: { searchParams: PageProps<"/leaderboard">
                     </Link>
                   </td>
                   <td className="hidden px-5 py-3 sm:table-cell">{r.level > 0 ? r.level + 1 : "–"}</td>
-                  <td className="px-5 py-3 text-right text-lg font-extrabold tabular-nums">{r.score.toLocaleString("en-US")}</td>
+                  <td className="px-5 py-3 text-right font-mono text-lg font-medium tabular-nums">{r.score.toLocaleString("en-US")}</td>
                 </tr>
               ))}
             </tbody>

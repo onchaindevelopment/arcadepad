@@ -34,7 +34,7 @@ async function Picker({ params }: { params: PageProps<"/play/[game]">["params"] 
       <Link href="/#games" className="chip">
         ← All games
       </Link>
-      <h1 className="mt-4 text-[clamp(2.2rem,5vw,3.8rem)] font-extrabold leading-none tracking-tight">{game.name}</h1>
+      <h1 className="mt-4 text-[clamp(2.2rem,5vw,3.8rem)] font-semibold leading-none tracking-[-0.04em]">{game.name}</h1>
       <p className="mt-3 max-w-2xl text-lg text-soft">{game.tagline}</p>
       <p className="mt-2 text-sm text-soft">
         {game.genre} · {game.session} · {game.controls}
@@ -44,14 +44,16 @@ async function Picker({ params }: { params: PageProps<"/play/[game]">["params"] 
         {THEMES.map((t) => {
           const p = t.palette;
           return (
-            <Link key={t.id} href={`/play/${game.id}/${t.id}`} className="slab slab-lift flex items-center gap-4 p-5" style={{ background: p.bg, color: p.text }}>
-              <MascotStatic theme={t} size={72} />
+            <Link key={t.id} href={`/play/${game.id}/${t.id}`} className="slab slab-lift flex items-center gap-4 p-5" style={{ background: `radial-gradient(120% 140% at 0% 0%, ${p.primary}30, transparent 60%), var(--surface)` }}>
+              <span className="grid h-20 w-20 shrink-0 place-items-center rounded-2xl border border-white/10" style={{ background: `${p.ink}aa`, boxShadow: `0 0 30px -6px ${p.primary}88` }}>
+                <MascotStatic theme={t} size={60} />
+              </span>
               <div className="min-w-0">
                 <p className="pixel text-sm" style={{ color: p.primary }}>
                   ${t.coin.ticker}
                 </p>
-                <p className="truncate text-xl font-extrabold">{gameTitle(game, t)}</p>
-                <p className="mt-1 text-sm opacity-75">▶ Play</p>
+                <p className="truncate text-xl font-semibold">{gameTitle(game, t)}</p>
+                <p className="mt-1 text-sm text-soft">▶ Play</p>
               </div>
             </Link>
           );

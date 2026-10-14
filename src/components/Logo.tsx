@@ -1,4 +1,3 @@
-import { BRAND } from "@/brand";
 
 // Pixel arcade token: a coin with an "A" on it.
 const TOKEN = [
@@ -30,8 +29,12 @@ export function LogoMark({ size = 32 }: { size?: number }) {
 export function Logo() {
   return (
     <span className="inline-flex items-center gap-2.5">
-      <LogoMark size={34} />
-      <span className="pixel text-lg font-bold tracking-wide">{BRAND.name.toUpperCase()}</span>
+      <span className="drop-shadow-[0_0_12px_rgba(255,210,61,0.45)]">
+        <LogoMark size={28} />
+      </span>
+      <span className="pixel text-[0.95rem] font-bold tracking-[0.12em]">
+        ARCADE<span className="text-hot">PAD</span>
+      </span>
     </span>
   );
 }

@@ -36,7 +36,7 @@ export default function FairPlayPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 pt-12 sm:px-6">
       <span className="chip">Fair play</span>
-      <h1 className="mt-4 text-[clamp(2.2rem,5vw,3.8rem)] font-extrabold leading-none tracking-tight">Fair play &amp; privacy</h1>
+      <h1 className="mt-4 text-[clamp(2.2rem,5vw,3.8rem)] font-semibold leading-none tracking-[-0.04em]">Fair play &amp; privacy</h1>
       <div className="mt-10 grid gap-5">
         {SECTIONS.map((s) => (
           <section key={s.h} className="slab p-6">

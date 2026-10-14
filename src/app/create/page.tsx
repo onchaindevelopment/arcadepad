@@ -11,10 +11,10 @@ export default function CreatePage() {
   return (
     <div className="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
       <span className="chip">Self-serve</span>
-      <h1 className="mt-4 text-[clamp(2.4rem,6vw,4.4rem)] font-extrabold leading-[0.95] tracking-tight">
+      <h1 className="mt-4 text-[clamp(2.4rem,6vw,4.4rem)] font-semibold leading-[0.98] tracking-[-0.04em]">
         Skin the whole arcade
         <br />
-        <span className="[box-decoration-break:clone] bg-[linear-gradient(transparent_64%,var(--highlight)_64%,var(--highlight)_90%,transparent_90%)] px-1">in two minutes.</span>
+        <span className="neon-text">in two minutes.</span>
       </h1>
       <p className="mt-5 max-w-2xl text-lg text-soft">
         Drop in your mascot, pick colours and a sound style, and play every game in your coin&apos;s skin right here. Your image is turned into pixel art in your browser and is never uploaded.
