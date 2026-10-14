@@ -14,7 +14,7 @@ const TOKEN = [
   ".kkyyyyyykk.",
   "...kkkkkk...",
 ];
-const COLORS: Record<string, string> = { k: "#1a1033", s: "#fff3c2", y: "#ffc83d" };
+const COLORS: Record<string, string> = { k: "#111", s: "#fff3c2", y: "#ffc83d" };
 
 export function LogoMark({ size = 32 }: { size?: number }) {
   return (
@@ -29,12 +29,17 @@ export function LogoMark({ size = 32 }: { size?: number }) {
 export function Logo() {
   return (
     <span className="inline-flex items-center gap-2.5">
-      <span className="drop-shadow-[0_0_12px_rgba(255,210,61,0.45)]">
-        <LogoMark size={28} />
-      </span>
-      <span className="pixel text-[0.95rem] font-bold tracking-[0.12em]">
-        ARCADE<span className="text-hot">PAD</span>
-      </span>
+      <LogoMark size={26} />
+      <span className="display text-[1.35rem] leading-none tracking-[-0.02em]">ArcadePad</span>
+    </span>
+  );
+}
+
+/** Round white badge with the coin mark, used in the header. */
+export function LogoBadge({ size = 46 }: { size?: number }) {
+  return (
+    <span className="grid place-items-center rounded-full bg-white shadow-[var(--soft-shadow)] transition-transform duration-300 hover:scale-[1.04]" style={{ width: size, height: size }}>
+      <LogoMark size={Math.round(size * 0.62)} />
     </span>
   );
 }

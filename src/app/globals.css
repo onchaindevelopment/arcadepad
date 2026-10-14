@@ -1,25 +1,32 @@
 @import "tailwindcss";
 
-/* ArcadePad: midnight arcade. Near-black glass, hairline edges, neon accents, pixel labels. */
+/*
+ * ArcadePad: black stage, dot-matrix display type, soft white pills that glow like a lit
+ * arcade button. Colour comes from the games themselves.
+ */
 :root {
-  --bg: #07060d;
-  --bg-2: #0d0b17;
-  --surface: #12101e;
-  --surface-2: #1a1729;
-  --hairline: rgba(255, 255, 255, 0.08);
-  --hairline-2: rgba(255, 255, 255, 0.14);
-  --text: #f3f0ff;
-  --text-soft: #a7a2bf;
-  --text-dim: #6e6987;
+  --bg: #000;
+  --bg-2: #060607;
+  --surface: #0c0c0d;
+  --surface-2: #161618;
+  --pill-dark: #1f1f21;
+  --hairline: rgba(255, 255, 255, 0.1);
+  --hairline-2: rgba(255, 255, 255, 0.22);
+  --text: #fff;
+  --text-soft: #c9c9cc;
+  --text-dim: #8a8a8f;
   --hot: #ff3d8b;
   --sun: #ffd23d;
-  --mint: #3dffb0;
+  --mint: #3dff8b;
   --sky: #3de4ff;
   --grape: #8b5cff;
-  --on-color: #0b0814;
-  --focus: #3de4ff;
-  --highlight: #ff3d8b;
-  --glow-hot: 0 0 0 1px rgba(255, 61, 139, 0.5), 0 8px 30px -6px rgba(255, 61, 139, 0.55);
+  --on-color: #000;
+  --focus: #fff;
+  --highlight: #fff;
+  --soft-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  --glow: 0 0 0 1px rgba(255, 255, 255, 0.15), 0 0 22px rgba(255, 255, 255, 0.3), 0 0 44px rgba(255, 255, 255, 0.1);
+  --glow-strong: 0 0 0 1px rgba(255, 255, 255, 0.25), 0 0 28px rgba(255, 255, 255, 0.45), 0 0 60px rgba(255, 255, 255, 0.16);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
   color-scheme: dark;
 
   /* Legacy names used across pages */
@@ -35,6 +42,7 @@
   --color-bg-2: var(--bg-2);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-pill: var(--pill-dark);
   --color-hairline: var(--hairline);
   --color-paper: var(--bg);
   --color-paper-2: var(--bg-2);
@@ -50,9 +58,10 @@
   --color-sky: var(--sky);
   --color-highlight: var(--highlight);
   --color-oncolor: var(--on-color);
-  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-geist), "Segoe UI", system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
   --font-pixel: var(--font-silk), ui-monospace, monospace;
+  --font-display: var(--font-doto), var(--font-silk), monospace;
 }
 
 html {
@@ -61,14 +70,9 @@ html {
 }
 body {
   overflow-x: clip;
-  background-color: var(--bg);
-  background-image:
-    radial-gradient(60rem 40rem at 85% -10%, rgba(139, 92, 255, 0.16), transparent 60%),
-    radial-gradient(50rem 36rem at -10% 10%, rgba(255, 61, 139, 0.1), transparent 60%);
-  background-repeat: no-repeat;
+  background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
-  font-feature-settings: "ss01", "cv11";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -76,159 +80,171 @@ body {
 :focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 3px;
-  border-radius: 10px;
+  border-radius: 999px;
 }
 
 ::selection {
-  background: var(--hot);
-  color: #fff;
+  background: #fff;
+  color: #000;
+}
+
+/* Dot-matrix display headings */
+h1,
+h2 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-variation-settings: "ROND" 100;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+h3 {
+  font-weight: 600;
+  letter-spacing: -0.015em;
 }
 
 @layer components {
-  /* Glass surface with a hairline edge and a faint top highlight */
   .slab {
     position: relative;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 40%), var(--card);
+    background: var(--card);
     border: 1px solid var(--hairline);
-    border-radius: 20px;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.05),
-      0 20px 40px -24px rgba(0, 0, 0, 0.8);
+    border-radius: 22px;
   }
   .slab-lift {
     transition:
-      transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      border-color 240ms ease,
-      box-shadow 240ms ease;
+      transform 300ms var(--ease),
+      border-color 300ms ease;
   }
   .slab-lift:hover {
     transform: translateY(-3px);
     border-color: var(--hairline-2);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.07),
-      0 30px 60px -28px rgba(0, 0, 0, 0.9),
-      0 0 0 1px rgba(255, 255, 255, 0.04);
   }
 
+  /* White glowing pill: the lit arcade button */
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
     font-weight: 600;
+    font-size: 0.92rem;
     letter-spacing: -0.01em;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 12px;
-    padding: 0.7rem 1.2rem;
-    color: var(--on-color);
-    background: var(--text);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.35),
-      0 6px 20px -8px rgba(0, 0, 0, 0.7);
+    border-radius: 999px;
+    padding: 0.8rem 1.6rem;
+    color: #000;
+    background: #fff;
+    border: 0;
+    box-shadow: var(--glow);
     transition:
-      transform 140ms ease,
-      box-shadow 180ms ease,
-      background-color 180ms ease,
-      filter 180ms ease;
+      transform 260ms var(--ease),
+      box-shadow 260ms var(--ease),
+      background-color 200ms ease,
+      color 200ms ease;
     cursor: pointer;
     white-space: nowrap;
   }
   .btn:hover {
-    transform: translateY(-1px);
-    filter: brightness(1.08);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--glow-strong);
   }
   .btn:active {
-    transform: translateY(1px);
-    filter: brightness(0.95);
+    transform: translateY(0) scale(0.98);
   }
   .btn:disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
     transform: none;
   }
-  .btn-hot {
-    background: linear-gradient(180deg, #ff5c9d, #ff2f80);
-    color: #fff;
-    border-color: rgba(255, 255, 255, 0.22);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.35),
-      0 10px 30px -8px rgba(255, 61, 139, 0.65);
-  }
-  .btn-sun {
-    background: linear-gradient(180deg, #ffe066, #ffc61a);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.5),
-      0 10px 30px -10px rgba(255, 210, 61, 0.55);
-  }
+  .btn-hot,
+  .btn-sun,
   .btn-mint {
-    background: linear-gradient(180deg, #6dffc4, #2cf0a0);
+    background: #fff;
+    color: #000;
   }
+  /* Dark pill */
   .btn-plain {
-    background: rgba(255, 255, 255, 0.04);
-    color: var(--text);
-    border-color: var(--hairline-2);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(8px);
+    background: var(--pill-dark);
+    color: #c8c8c8;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+      var(--soft-shadow);
   }
   .btn-plain:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: #2a2a2d;
+    color: #fff;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+      var(--soft-shadow);
   }
   .btn-sm {
-    padding: 0.45rem 0.85rem;
-    font-size: 0.875rem;
-    border-radius: 10px;
+    padding: 0.5rem 1rem;
+    font-size: 0.82rem;
   }
 
   .chip {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    font-family: var(--font-pixel);
-    font-size: 0.66rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    border: 1px solid var(--hairline-2);
+    font-size: 0.8rem;
+    font-weight: 500;
     border-radius: 999px;
-    padding: 0.3rem 0.7rem;
-    background: rgba(255, 255, 255, 0.03);
+    padding: 0.4rem 0.9rem;
+    background: var(--pill-dark);
     color: var(--text-soft);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
     transition:
       color 160ms ease,
-      border-color 160ms ease,
-      background-color 160ms ease;
+      background-color 160ms ease,
+      box-shadow 160ms ease;
   }
   a.chip:hover,
   button.chip:hover {
-    color: var(--text);
-    border-color: rgba(255, 255, 255, 0.28);
+    color: #fff;
+    background: #2a2a2d;
   }
   .chip[aria-current="page"],
   .chip[aria-pressed="true"] {
-    color: var(--on-color);
-    background: var(--text);
-    border-color: var(--text);
+    color: #000;
+    background: #fff;
+    box-shadow: var(--glow);
   }
 
   .pixel {
     font-family: var(--font-pixel);
     letter-spacing: 0.04em;
   }
+  .display {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-variation-settings: "ROND" 100;
+  }
 
+  /* Section label: a lit dot + pixel caps */
   .kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
     font-family: var(--font-pixel);
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--sky);
+    color: var(--text-dim);
+  }
+  .kicker::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 0 10px #fff;
   }
 
   .field {
     width: 100%;
-    background: rgba(255, 255, 255, 0.03);
-    color: var(--text);
+    background: var(--surface);
+    color: #fff;
     border: 1px solid var(--hairline-2);
-    border-radius: 12px;
-    padding: 0.7rem 0.9rem;
+    border-radius: 14px;
+    padding: 0.75rem 0.95rem;
     font: inherit;
     transition:
       border-color 160ms ease,
@@ -236,51 +252,63 @@ body {
   }
   .field:focus {
     outline: none;
-    border-color: var(--sky);
-    box-shadow: 0 0 0 3px rgba(61, 228, 255, 0.18);
+    border-color: #fff;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
   }
   .field::placeholder {
     color: var(--text-dim);
   }
 
-  /* Gradient headline text */
   .neon-text {
-    background: linear-gradient(92deg, #ff3d8b 0%, #ff8a3d 35%, #ffd23d 60%, #3de4ff 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: #fff;
   }
 
-  /* A game screen: dark bezel, inner hairline, soft glow in the game's colour */
   .screen {
     position: relative;
     overflow: hidden;
     border-radius: 14px;
-    box-shadow:
-      inset 0 0 0 1px rgba(255, 255, 255, 0.07),
-      0 0 0 1px rgba(0, 0, 0, 0.6);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   }
 }
 
-/* Synthwave floor: perspective grid fading into the horizon */
-.grid-floor {
-  position: absolute;
-  inset: auto -20% 0 -20%;
-  height: 55%;
-  background-image:
-    linear-gradient(rgba(139, 92, 255, 0.35) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(139, 92, 255, 0.35) 1px, transparent 1px);
-  background-size: 64px 64px;
-  transform: perspective(520px) rotateX(62deg);
-  transform-origin: 50% 100%;
-  mask-image: linear-gradient(to top, black 0%, transparent 85%);
-  -webkit-mask-image: linear-gradient(to top, black 0%, transparent 85%);
-  animation: floor 3.5s linear infinite;
-  pointer-events: none;
+/* Dot-matrix screen texture */
+.dots {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.55) 0.9px, transparent 1.2px);
+  background-size: 4px 4px;
 }
-@keyframes floor {
+.halftone {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1.4px);
+  background-size: 7px 7px;
+}
+
+/* Blinking cursor */
+.cursor::after {
+  content: "_";
+  animation: blink 1s steps(1) infinite;
+}
+
+/* Entrance: fade up out of a soft blur, staggered by --d */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px) scale(0.98);
+  filter: blur(6px);
+  animation: reveal 0.85s var(--ease) forwards;
+  animation-delay: var(--d, 0s);
+}
+@keyframes reveal {
   to {
-    background-position: 0 64px;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+.drop-in {
+  animation: drop-in 0.7s var(--ease) both;
+}
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-18px);
   }
 }
 
@@ -288,7 +316,7 @@ body {
 .marquee {
   display: flex;
   width: max-content;
-  animation: marquee 48s linear infinite;
+  animation: marquee 44s linear infinite;
 }
 @keyframes marquee {
   to {
@@ -312,7 +340,7 @@ body {
 @keyframes pop-in {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -320,7 +348,7 @@ body {
   }
 }
 .pop-in {
-  animation: pop-in 640ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: pop-in 500ms var(--ease) both;
 }
 
 @keyframes blink {
@@ -332,7 +360,7 @@ body {
   animation: blink 1.1s steps(1) infinite;
 }
 
-/* CRT glass for game screens: fine scanlines + vignette */
+/* CRT glass for game screens: scanlines + vignette */
 .crt {
   position: relative;
   overflow: hidden;
@@ -343,7 +371,7 @@ body {
   inset: 0;
   pointer-events: none;
   background:
-    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.14) 0 1px, transparent 1px 3px),
     radial-gradient(120% 90% at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.35));
   border-radius: inherit;
 }
@@ -353,6 +381,7 @@ body {
   *::before,
   *::after {
     animation-duration: 0.001ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
@@ -376,4 +405,26 @@ body:has(.play-fixed) > footer {
 .game-stage:fullscreen {
   width: 100vw;
   height: 100vh;
+}
+
+/* Mobile menu */
+body.menu-open {
+  overflow: hidden;
+}
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.97);
+  }
+}
+.overlay-in {
+  animation: overlay-in 0.28s ease both;
+}
+.menu-in {
+  animation: menu-in 0.38s var(--ease) both;
 }

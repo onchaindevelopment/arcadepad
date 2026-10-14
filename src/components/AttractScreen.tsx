@@ -5,7 +5,6 @@ import { loadGame } from "@/games/client";
 import { STEP_MS } from "@/games/core/types";
 import type { GameMeta } from "@/games/core/types";
 import { THEMES } from "@/themes";
-import { Mascot } from "./Mascot";
 
 const SLOT_MS = 9000;
 
@@ -71,16 +70,18 @@ export function AttractScreen({ games }: { games: Pick<GameMeta, "id" | "name" |
   const p = theme.palette;
   return (
     <div ref={boxRef} className="relative">
-      {/* Glow behind the cabinet, in the current skin colour */}
-      <div className="pointer-events-none absolute -inset-8 rounded-[40px] opacity-60 blur-3xl transition-colors duration-700" style={{ background: `radial-gradient(closest-side, ${p.primary}55, transparent)` }} aria-hidden />
-      <div className="relative rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,#1b1828,#0c0a14)] p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_40px_80px_-30px_rgba(0,0,0,0.9)] sm:p-3">
-        <div className="mb-2 flex items-center gap-2 px-1.5 sm:pr-20">
-          <span className="pixel flex min-w-0 items-center gap-2 text-[0.68rem] tracking-[0.1em]">
-            <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full" style={{ background: p.primary, boxShadow: `0 0 8px ${p.primary}` }} aria-hidden />
-            <span className="truncate text-soft">
-              <span style={{ color: p.primary }}>${theme.coin.ticker}</span> · {game.name.toUpperCase()}
+      <div className="pointer-events-none absolute -inset-10 opacity-50 blur-3xl transition-colors duration-700" style={{ background: `radial-gradient(closest-side, ${p.primary}66, transparent)` }} aria-hidden />
+      <div className="relative rounded-[28px] border border-white/10 bg-[#0c0c0d] p-3 shadow-[0_40px_80px_-30px_rgba(0,0,0,0.9)]">
+        <div className="flex items-center justify-between gap-3 px-2 pb-3 pt-1">
+          <span className="flex min-w-0 items-center gap-2 text-sm font-medium">
+            <span className="h-2 w-2 shrink-0 animate-pulse rounded-full" style={{ background: p.primary, boxShadow: `0 0 10px ${p.primary}` }} aria-hidden />
+            <span className="truncate">
+              <span style={{ color: p.primary }}>${theme.coin.ticker}</span>
+              <span className="text-dim"> · </span>
+              {game.name}
             </span>
           </span>
+          <span className="pixel shrink-0 text-[0.66rem] uppercase tracking-[0.16em] text-dim">Live demo</span>
         </div>
         <div className="crt screen grid aspect-[4/3] place-items-center transition-colors duration-500" style={{ background: p.bg }}>
           <canvas
@@ -92,18 +93,15 @@ export function AttractScreen({ games }: { games: Pick<GameMeta, "id" | "name" |
             aria-label={`Demo: ${game.name} playing itself in the ${theme.coin.ticker} skin`}
           />
         </div>
-        <div className="mt-2.5 flex items-center justify-between gap-2 px-1">
-          <button className="btn btn-plain btn-sm !text-xs" onClick={() => setI((n) => n + 1)}>
-            Next game ›
+        <div className="flex items-center justify-between gap-2 px-1 pb-1 pt-3">
+          <button className="btn btn-plain btn-sm" onClick={() => setI((n) => n + 1)}>
+            Next game →
           </button>
-          <span className="pixel blink hidden text-[0.6rem] tracking-[0.16em] text-sun sm:inline">INSERT COIN</span>
-          <Link href={`/play/${game.id}/${theme.id}`} className="btn btn-sm" style={{ background: p.primary }}>
-            ▶ Play {game.name}
+          <span className="pixel blink hidden text-[0.66rem] uppercase tracking-[0.18em] text-soft sm:inline">Insert coin</span>
+          <Link href={`/play/${game.id}/${theme.id}`} className="btn btn-sm">
+            Play {game.name}
           </Link>
         </div>
-      </div>
-      <div className="floaty absolute -right-3 -top-8 hidden h-20 w-20 place-items-center rounded-2xl border border-white/15 sm:grid" style={{ background: `linear-gradient(160deg, ${p.primary}, ${p.secondary})`, boxShadow: `0 12px 40px -8px ${p.primary}99`, ["--r" as string]: "6deg" }} aria-hidden>
-        <Mascot theme={theme} size={60} />
       </div>
     </div>
   );

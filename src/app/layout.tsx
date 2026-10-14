@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Silkscreen } from "next/font/google";
+import { Doto, Geist, Geist_Mono, Silkscreen } from "next/font/google";
 import { BRAND } from "@/brand";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import "./globals.css";
 
+const doto = Doto({ variable: "--font-doto", subsets: ["latin"], weight: "variable", axes: ["ROND"], display: "swap" });
 const geist = Geist({ variable: "--font-geist", subsets: ["latin"], display: "swap" });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], display: "swap" });
 const silk = Silkscreen({ variable: "--font-silk", subsets: ["latin"], weight: ["400", "700"], display: "swap" });
@@ -19,13 +20,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#07060d",
+  themeColor: "#000000",
   colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geist.variable} ${geistMono.variable} ${silk.variable} h-full antialiased`}>
+    <html lang="en" className={`${doto.variable} ${geist.variable} ${geistMono.variable} ${silk.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 btn btn-sun">
           Skip to content
