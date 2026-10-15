@@ -42,11 +42,6 @@ export function SiteFooter() {
         <p className="mx-auto max-w-6xl px-4 py-6 text-xs text-dim sm:px-6">
           © {BRAND.name}. Game code is free software under the GNU GPL v3. Demo coins on this site are fictional.
         </p>
-        <p className="mx-auto max-w-6xl px-4 pb-6 text-xs text-dim sm:px-6">
-          Music: &ldquo;Insert Coin&rdquo; by megupets (
-          <a className="underline hover:text-white" href="https://opengameart.org/content/insert-coin" rel="noopener noreferrer" target="_blank">OpenGameArt</a>
-          ), CC0.
-        </p>
       </div>
     </footer>
   );

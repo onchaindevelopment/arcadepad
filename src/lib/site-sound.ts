@@ -1,21 +1,20 @@
 "use client";
-// Site-wide sound: a looping background track plus synth UI blips, shared by the header
-// speaker button, menus and the game shelf. Browsers allow audio only after a user
-// gesture, so nothing plays until the first click/tap/key.
-//
-// Music: "Insert Coin" by megupets (opengameart.org/content/insert-coin), CC0.
+// Site-wide sound: the original "Title Screen" chiptune plus UI blips, all played live by
+// the WebAudio synth (nothing sampled), shared by the header speaker button, menus and the
+// game shelf. Browsers allow audio only after a user gesture, so nothing plays until the
+// first click/tap/key.
 import { Synth } from "@/game/audio";
+import { getSong } from "@/game/music";
 import { THEMES } from "@/themes";
 import type { SfxName } from "@/themes/types";
 
 const KEY = "ap_sound";
-const TRACK = "/music/insert-coin.mp3";
-const VOLUME = 0.35;
+const SONG = "title-screen";
 
 let synth: Synth | null = null;
-let track: HTMLAudioElement | null = null;
 let on = true;
 let loaded = false;
+let playing = false;
 let suppressed = false; // a game is running or we're on a full-screen game route
 const subs = new Set<() => void>();
 
@@ -27,28 +26,24 @@ function init() {
   } catch {}
 }
 
-function getSynth(): Synth {
+function get(): Synth {
   if (!synth) {
     const t = THEMES[0];
     synth = new Synth(t.sfx, t.music);
+    synth.setSong(getSong(SONG) ?? null);
   }
   return synth;
 }
 
-function getTrack(): HTMLAudioElement {
-  if (!track) {
-    track = new Audio(TRACK);
-    track.loop = true;
-    track.preload = "auto";
-    track.volume = VOLUME;
-  }
-  return track;
+function startMusic() {
+  if (playing) return;
+  get().startMusic();
+  playing = true;
 }
 
-function playTrack() {
-  const t = getTrack();
-  if (!t.paused) return;
-  void t.play().catch(() => {});
+function stopMusic() {
+  synth?.stopMusic();
+  playing = false;
 }
 
 const emit = () => subs.forEach((f) => f());
@@ -65,13 +60,13 @@ export const siteSound = {
   /** Call from any user gesture: unlocks audio and starts the music once. */
   wake() {
     init();
-    getSynth().unlock();
-    if (on && !suppressed) playTrack();
+    get().unlock();
+    if (on && !suppressed) startMusic();
   },
   blip(name: SfxName) {
     init();
     if (!on || suppressed) return;
-    const s = getSynth();
+    const s = get();
     s.unlock();
     s.play(name);
   },
@@ -81,24 +76,24 @@ export const siteSound = {
     try {
       localStorage.setItem(KEY, on ? "on" : "off");
     } catch {}
-    getSynth().unlock();
+    get().unlock();
     if (on && !suppressed) {
-      playTrack();
-      getSynth().play("extraGood");
+      startMusic();
+      get().play("extraGood");
     } else {
-      track?.pause();
+      stopMusic();
     }
     emit();
   },
-  /** Games bring their own music: pause the site track while one runs. */
+  /** Games bring their own music: stop the site tune while one runs. */
   suppress(v: boolean) {
     suppressed = v;
-    if (v) track?.pause();
+    if (v) stopMusic();
   },
   pause() {
-    track?.pause();
+    stopMusic();
   },
   resumeIfOn() {
-    if (track && on && !suppressed) playTrack();
+    if (synth && on && !suppressed) startMusic();
   },
 };

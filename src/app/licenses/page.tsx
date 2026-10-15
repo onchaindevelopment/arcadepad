@@ -18,7 +18,6 @@ const ROWS = [
     from: `Original work by ${BRAND.name}`,
     licence: "GPL-3.0-or-later",
   },
-  { what: "Site music: \"Insert Coin\"", from: "megupets (megupets.com), via OpenGameArt. Re-encoded to 160 kbps.", licence: "CC0 1.0 (public domain)" },
   { what: "Tiny5, Silkscreen, Doto, Geist, Geist Mono (fonts)", from: "The Tiny5, Silkscreen and Doto Project Authors; Vercel (Geist)", licence: "SIL Open Font License 1.1" },
   { what: "Next.js, React, Tailwind CSS", from: "Vercel; Meta; Tailwind Labs", licence: "MIT" },
   { what: "@noble/curves, @noble/hashes, @scure/base, viem, @neondatabase/serverless", from: "Paul Miller; wevm; Neon", licence: "MIT" },

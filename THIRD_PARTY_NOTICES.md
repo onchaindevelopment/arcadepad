@@ -46,11 +46,3 @@ https://github.com/nebez/floppybird
 
 ## Fonts
 Bricolage Grotesque and Silkscreen: SIL Open Font License 1.1 (texts in `assets/fonts/`).
-
-
-## Site music: "Insert Coin" by megupets
-
-- File: `public/music/insert-coin.mp3` (re-encoded from the original 320 kbps MP3 to 160 kbps; no other changes).
-- Source: https://opengameart.org/content/insert-coin
-- Licence: CC0 1.0 Universal (public domain dedication), https://creativecommons.org/publicdomain/zero/1.0/
-- Credit (optional, as suggested by the author): Song by megupets, for more go to megupets.com
